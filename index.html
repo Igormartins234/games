@@ -534,11 +534,6 @@
                 permShop.updateUI();
             }
         }
-
-        // ==========================================
-        // MOTOR DO JOGO (MODIFICADO)
-        // ==========================================
-        
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const keys = { w: false, a: false, s: false, d: false, space: false, shift: false };
@@ -964,6 +959,8 @@
                             enemies.splice(i, 1);
                             if(player.score > wave * 1000) {
                                 wave++; difficultyMult += 0.2;
+                                player.coins += 70;
+                                createExplosion(player.x, player.y, '#FFD700', 10);
                             }
                         }
                     }
