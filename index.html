@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Void - Space Defender (Connected)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- FIREBASE SDKs-->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        /* --- Estilo Global --- */
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-pink: #ff00ff;
+            --neon-green: #00ff9d;
+            --bg-dark: #050510;
+            --diamond-color: #b9f2ff;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: var(--bg-dark);
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .cyber-grid {
+            position: fixed;
+            top: 0; left: 0; width: 200%; height: 200%;
+            background-image: 
+                linear-gradient(rgba(0, 243, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
+            transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
+            animation: gridMove 20s linear infinite;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        @keyframes gridMove {
+            0% { transform: perspective(500px) rotateX(60deg) translateY(0) translateZ(-200px); }
+            100% { transform: perspective(500px) rotateX(60deg) translateY(40px) translateZ(-200px); }
+        }
+
+        canvas {
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.15);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            background: rgba(0,0,0,0.6);
+            border-radius: 4px;
+        }
+        
+        .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        .glass-panel {
+            background: rgba(12, 12, 20, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        .btn-cyber {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+            cursor: pointer;
+        }
+        
+        .btn-cyber:hover {
+            text-shadow: 0 0 8px currentColor;
+            transform: translateY(-2px);
+        }
+
+        .shop-card {
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        .shop-card:hover:not(:disabled) {
+            border-color: var(--neon-blue);
+            background: rgba(0, 243, 255, 0.1);
+        }
+        .shop-card:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            filter: grayscale(1);
+        }
+
+        .hp-container {
+            width: 200px;
+            height: 10px;
+            background: #333;
+            transform: skewX(-20deg);
+            overflow: hidden;
+            border: 1px solid #555;
+        }
+        .hp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff0000, #ff5500);
+            width: 100%;
+            transition: width 0.2s ease-out;
+            box-shadow: 0 0 10px #ff0000;
+        }
+
+        .diamond-text {
+            color: var(--diamond-color);
+            text-shadow: 0 0 10px var(--diamond-color);
+        }
+        
+        .login-overlay {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.9); z-index: 100;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* Dash Effect Indicator */
+        .dash-ready { box-shadow: 0 0 15px #00ff9d; border-color: #00ff9d; }
+        .dash-cd { opacity: 0.3; }
+
+    </style>
+</head>
+<body class="h-screen w-screen flex items-center justify-center text-white">
+
+    <div class="cyber-grid"></div>
+
+    <!-- TELA DE LOGIN -->
+    <div id="loginScreen" class="login-overlay">
+        <div class="glass-panel p-10 rounded-xl text-center max-w-md w-full border border-cyan-500/30">
+            <h2 class="text-4xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500">
+                IDENTIFICAÇÃO
+            </h2>
+            <p class="text-gray-400 mb-8">Conecte-se ao banco de dados galáctico para salvar seu progresso e diamantes.</p>
+            
+            <button onclick="authManager.loginGoogle()" class="w-full bg-white text-black font-bold py-3 rounded mb-4 hover:bg-gray-200 transition flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27c3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12c0 5.05 4.13 10 10.22 10c5.35 0 9.25-3.67 9.25-9.09c0-1.15-.15-1.81-.15-1.81Z"/></svg>
+                ENTRAR COM GOOGLE
+            </button>
+            
+            <button onclick="authManager.skipLogin()" class="text-sm text-gray-500 hover:text-white underline mt-4">
+                Jogar como Convidado (Não salva o seu progresso)
+            </button>
+
+            <div id="loginStatus" class="mt-4 text-xs text-cyan-400 h-4"></div>
+        </div>
+    </div>
+
+    <!-- HUD -->
+    <div id="uiLayer" class="absolute inset-0 pointer-events-none p-6 hidden flex-col justify-between z-10">
+        <div class="flex justify-between items-start w-full max-w-5xl mx-auto">
+            <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2">
+                    <span class="text-neon-pink font-bold text-xl tracking-widest">HULL</span>
+                    <div class="hp-container">
+                        <div id="hpBar" class="hp-fill"></div>
+                    </div>
+                </div>
+                <div class="text-sm text-gray-400 font-mono">WAVE: <span id="waveDisplay" class="text-white text-lg">1</span></div>
+                
+                <!-- Indicador de Dash (NOVO) -->
+                <div id="dashIndicator" class="hidden mt-2 items-center gap-2">
+                    <span class="text-xs text-green-400 font-bold">DASH [SHIFT]</span>
+                    <div class="w-24 h-2 bg-gray-800 rounded overflow-hidden border border-gray-600">
+                        <div id="dashBar" class="h-full bg-green-400 w-full transition-all duration-100"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <div class="text-xs text-gray-500 tracking-[0.5em] uppercase">Score</div>
+                <div id="scoreDisplay" class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-400">0</div>
+            </div>
+
+            <div class="flex flex-col items-end gap-2">
+                <div class="flex items-center gap-2 text-yellow-400">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span id="coinDisplay" class="text-2xl font-mono font-bold">0</span>
+                </div>
+                <div class="text-xs text-cyan-400 animate-pulse mt-1 pointer-events-auto">
+                    [ESPAÇO] Loja | [SHIFT] Dash (Se desbloqueado)
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Menu Principal -->
+    <div id="mainMenu" class="absolute z-20 flex flex-col items-center justify-center text-center hidden">
+        <!-- User Info -->
+        <div class="absolute top-4 right-4 text-right">
+            <div id="userName" class="text-sm text-gray-400">Visitante</div>
+            <div class="flex items-center justify-end gap-2 text-xl font-bold diamond-text">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z" />
+                </svg>
+                <span id="diamondDisplay">0</span>
+            </div>
+        </div>
+
+        <h1 class="text-7xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 drop-shadow-[0_0_15px_rgba(0,243,255,0.5)]">
+            NEON VOID
+        </h1>
+        <p class="text-gray-400 mb-10 tracking-widest text-lg">DEFESA ORBITAL // SISTEMA ONLINE</p>
+        
+        <div class="flex gap-4">
+            <button onclick="startGame()" class="btn-cyber bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-4 px-12 text-xl shadow-[0_0_20px_rgba(6,182,212,0.5)]">
+                INICIAR MISSÃO
+            </button>
+            <button onclick="toggleHangar()" class="btn-cyber bg-purple-700 hover:bg-purple-600 text-white font-bold py-4 px-8 text-xl shadow-[0_0_20px_rgba(147,51,234,0.5)]">
+                HANGAR (UPGRADES)
+            </button>
+        </div>
+        
+        <div class="mt-8 text-sm text-gray-500 font-mono space-x-4">
+            <span>[WASD] Mover</span>
+            <span>[MOUSE] Atirar</span>
+            <span>[SHIFT] Dash</span>
+            <span>[ESPAÇO] Loja In-Game</span>
+        </div>
+    </div>
+
+    <!-- HANGAR -->
+    <div id="hangarModal" class="absolute inset-0 z-30 bg-black/90 backdrop-blur-md hidden flex items-center justify-center">
+        <div class="glass-panel p-8 max-w-5xl w-full rounded-xl border border-purple-500/50">
+            <div class="flex justify-between items-center mb-8 border-b border-purple-800 pb-4">
+                <h2 class="text-3xl font-bold text-purple-400">HANGAR DE TECNOLOGIA PERMANENTE</h2>
+                <div class="text-cyan-300 font-mono text-xl flex items-center gap-2">
+                    DIAMANTES: <span id="hangarDiamonds">0</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Upgrade 1: Escudo -->
+                <button id="permShield" class="shop-card p-6 rounded bg-gray-800/80 text-left group border border-blue-900" onclick="permShop.buy('shield')">
+                    <div class="flex justify-between">
+                        <div class="text-blue-400 font-bold text-xl group-hover:text-blue-300">ESCUDO DE PLASMA</div>
+                        <div id="status-shield" class="text-xs bg-gray-700 px-2 py-1 rounded">BLOQUEADO</div>
+                    </div>
+                    <div class="text-sm text-gray-400 mt-2 h-12">Inicia cada missão com +50% de Integridade de Casco (HP).</div>
+                    <div class="flex justify-between items-end mt-4">
+                        <div class="text-xs text-gray-500 font-mono">PASSIVO</div>
+                        <div class="text-cyan-300 font-bold text-lg flex items-center gap-1">
+                            <span class="text-xs">♦</span> 10
+                        </div>
+                    </div>
+                </button>
+
+                <!-- Upgrade 2: Magneto -->
+                <button id="permMagnet" class="shop-card p-6 rounded bg-gray-800/80 text-left group border border-yellow-900" onclick="permShop.buy('magnet')">
+                    <div class="flex justify-between">
+                        <div class="text-yellow-400 font-bold text-xl group-hover:text-yellow-300">RAIO TRATOR MKII</div>
+                        <div id="status-magnet" class="text-xs bg-gray-700 px-2 py-1 rounded">BLOQUEADO</div>
+                    </div>
+                    <div class="text-sm text-gray-400 mt-2 h-12">Aumenta significativamente o alcance de coleta de moedas.</div>
+                    <div class="flex justify-between items-end mt-4">
+                        <div class="text-xs text-gray-500 font-mono">PASSIVO</div>
+                        <div class="text-cyan-300 font-bold text-lg flex items-center gap-1">
+                            <span class="text-xs">♦</span> 25
+                        </div>
+                    </div>
+                </button>
+
+                <!-- Upgrade 3: Dash -->
+                <button id="permDash" class="shop-card p-6 rounded bg-gray-800/80 text-left group border border-green-900" onclick="permShop.buy('dash')">
+                    <div class="flex justify-between">
+                        <div class="text-green-400 font-bold text-xl group-hover:text-green-300">HYPER DASH</div>
+                        <div id="status-dash" class="text-xs bg-gray-700 px-2 py-1 rounded">BLOQUEADO</div>
+                    </div>
+                    <div class="text-sm text-gray-400 mt-2 h-12">Habilidade Ativa [SHIFT]. Impulso rápido com invencibilidade temporária.</div>
+                    <div class="flex justify-between items-end mt-4">
+                        <div class="text-xs text-gray-500 font-mono">ATIVO</div>
+                        <div class="text-cyan-300 font-bold text-lg flex items-center gap-1">
+                            <span class="text-xs">♦</span> 50
+                        </div>
+                    </div>
+                </button>
+            </div>
+
+            <div class="mt-8 text-center">
+                <button onclick="toggleHangar()" class="px-8 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded font-bold uppercase text-sm tracking-wider">
+                    VOLTAR AO MENU
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loja In-Game -->
+    <div id="shopModal" class="absolute inset-0 z-30 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center">
+        <div class="glass-panel p-8 max-w-4xl w-full rounded-xl transform transition-all relative">
+            <div class="flex justify-between items-center mb-8 border-b border-gray-700 pb-4">
+                <h2 class="text-3xl font-bold text-cyan-400">ESTAÇÃO DE UPGRADE (SESSÃO)</h2>
+                <div class="text-yellow-400 font-mono text-xl flex items-center gap-2">
+                    CRÉDITOS: <span id="shopCoins">0</span>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                 <button id="btnDmg" class="shop-card p-4 rounded bg-gray-800/50 text-left group" onclick="shop.buy('damage')">
+                    <div class="text-red-400 font-bold mb-1">POTÊNCIA</div>
+                    <div class="text-xs text-gray-400">Dano +</div>
+                    <div class="flex justify-between mt-2"><span id="lvl-damage" class="text-gray-500">1</span> <span id="cost-damage" class="text-yellow-400">100</span></div>
+                    <div class="h-1 bg-gray-700 mt-2"><div id="bar-damage" class="h-full bg-red-500 w-[10%]"></div></div>
+                </button>
+                <button id="btnSpd" class="shop-card p-4 rounded bg-gray-800/50 text-left group" onclick="shop.buy('fireRate')">
+                    <div class="text-cyan-400 font-bold mb-1">REFRIGERAÇÃO</div>
+                    <div class="text-xs text-gray-400">Velocidade +</div>
+                    <div class="flex justify-between mt-2"><span id="lvl-fireRate" class="text-gray-500">1</span> <span id="cost-fireRate" class="text-yellow-400">150</span></div>
+                    <div class="h-1 bg-gray-700 mt-2"><div id="bar-fireRate" class="h-full bg-cyan-500 w-[10%]"></div></div>
+                </button>
+                <button id="btnMulti" class="shop-card p-4 rounded bg-gray-800/50 text-left group" onclick="shop.buy('multishot')">
+                    <div class="text-purple-400 font-bold mb-1">MULTI-CANHÃO</div>
+                    <div class="text-xs text-gray-400">Projéteis +</div>
+                    <div class="flex justify-between mt-2"><span id="lvl-multishot" class="text-gray-500">0</span> <span id="cost-multishot" class="text-yellow-400">500</span></div>
+                    <div class="h-1 bg-gray-700 mt-2"><div id="bar-multishot" class="h-full bg-purple-500 w-[0%]"></div></div>
+                </button>
+                <button id="btnHeal" class="shop-card p-4 rounded bg-gray-800/50 text-left group border border-green-900/50" onclick="shop.buy('heal')">
+                    <div class="text-green-400 font-bold mb-1">REPARO</div>
+                    <div class="text-xs text-gray-400">Cura 50%</div>
+                    <div class="text-yellow-400 font-bold mt-2">50</div>
+                </button>
+            </div>
+            <div class="mt-8 text-center">
+                <button onclick="toggleShop()" class="px-8 py-2 bg-red-600 hover:bg-red-500 text-white rounded font-bold uppercase text-sm tracking-wider">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameOverScreen" class="absolute inset-0 z-40 bg-black/90 hidden flex flex-col items-center justify-center">
+        <h2 class="text-6xl font-bold text-red-500 mb-4 retro-glitch">SISTEMA CRÍTICO</h2>
+        <div class="glass-panel p-8 rounded-lg text-center mb-8 w-96">
+            <div class="flex justify-between mb-2">
+                <span class="text-gray-400">Pontuação</span>
+                <span id="finalScore" class="text-white font-bold">0</span>
+            </div>
+            <div class="flex justify-between mb-4">
+                <span class="text-gray-400">Ondas</span>
+                <span id="finalWave" class="text-white font-bold">0</span>
+            </div>
+            <div class="border-t border-gray-700 pt-4 flex justify-between items-center">
+                <span class="text-cyan-400 font-bold">DIAMANTES GANHOS</span>
+                <span id="finalDiamonds" class="text-3xl font-bold diamond-text drop-shadow-[0_0_10px_#00f3ff]">+0</span>
+            </div>
+        </div>
+        <button onclick="authManager.returnToMenu()" class="btn-cyber bg-white text-black font-bold py-3 px-8 text-lg">
+            VOLTAR AO MENU
+        </button>
+    </div>
+
+    <div id="gameContainer" class="relative">
+        <canvas id="gameCanvas" width="1024" height="768"></canvas>
+    </div>
+
+    <script>
+        // ==========================================
+        // CONFIGURAÇÃO FIREBASE (PREENCHA AQUI)
+        // ==========================================
+        const firebaseConfig = {
+  apiKey: "AIzaSyCBv_7DsUDPva451ZTwN0qxZ9r624T_NBc",
+  authDomain: "navesa-bb3be.firebaseapp.com",
+  projectId: "navesa-bb3be",
+  storageBucket: "navesa-bb3be.firebasestorage.app",
+  messagingSenderId: "969086896980",
+  appId: "1:969086896980:web:89eb7347d2f60d9fe1d6c1"
+};
+        // Verifica se o usuário colocou a config, senão usa modo Mock
+        const isFirebaseConfigured = firebaseConfig.apiKey !== "SUA_API_KEY_AQUI";
+        let db, auth;
+
+        if (isFirebaseConfigured) {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+            auth = firebase.auth();
+        } else {
+            console.log("Firebase não configurado. Usando modo Offline/Simulação.");
+        }
+
+        // --- Gerenciador de Auth e Dados ---
+        const authManager = {
+            user: null,
+            data: {
+                diamonds: 0,
+                upgrades: {
+                    shield: false,
+                    magnet: false,
+                    dash: false
+                }
+            },
+
+            loginGoogle: function() {
+                if (!isFirebaseConfigured) {
+                    this.mockLogin();
+                    return;
+                }
+                const provider = new firebase.auth.GoogleAuthProvider();
+                auth.signInWithPopup(provider)
+                    .then((result) => {
+                        this.user = result.user;
+                        this.loadData();
+                        this.showMenu();
+                    })
+                    .catch((error) => {
+                        document.getElementById('loginStatus').innerText = "Erro: " + error.message;
+                    });
+            },
+
+            skipLogin: function() {
+                this.user = null; // Modo Guest
+                this.showMenu();
+            },
+
+            mockLogin: function() {
+                // Simula login para quem testar sem chaves
+                this.user = { displayName: "Viajante Teste", uid: "test_user_123" };
+                // Tenta carregar do localStorage pra persistir localmente no modo teste
+                const localData = localStorage.getItem('neonVoidData');
+                if(localData) this.data = JSON.parse(localData);
+                this.showMenu();
+            },
+
+            showMenu: function() {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('mainMenu').style.display = 'flex';
+                document.getElementById('mainMenu').classList.remove('hidden'); // Ensure logic
+                
+                if(this.user) {
+                    document.getElementById('userName').innerText = "Cmd. " + this.user.displayName;
+                    document.getElementById('diamondDisplay').innerText = this.data.diamonds;
+                }
+                permShop.updateUI();
+            },
+
+            loadData: function() {
+                if(!this.user) return;
+                
+                if(isFirebaseConfigured) {
+                    db.collection('users').doc(this.user.uid).get().then((doc) => {
+                        if (doc.exists) {
+                            this.data = doc.data();
+                        } else {
+                            // Criar novo user
+                            this.saveData();
+                        }
+                        document.getElementById('diamondDisplay').innerText = this.data.diamonds;
+                        permShop.updateUI();
+                    });
+                }
+            },
+
+            saveData: function() {
+                if(isFirebaseConfigured && this.user) {
+                    db.collection('users').doc(this.user.uid).set(this.data);
+                } else if (!isFirebaseConfigured && this.user) {
+                    // Salva no localStorage no modo teste
+                    localStorage.setItem('neonVoidData', JSON.stringify(this.data));
+                }
+                document.getElementById('diamondDisplay').innerText = this.data.diamonds;
+            },
+
+            addDiamonds: function(amount) {
+                if(!this.user) return; // Visitantes não ganham
+                this.data.diamonds += amount;
+                this.saveData();
+            },
+            
+            returnToMenu: function() {
+                document.getElementById('gameOverScreen').style.display = 'none';
+                document.getElementById('mainMenu').style.display = 'flex';
+                this.showMenu();
+            }
+        };
+
+        // --- Lógica do Hangar (Loja Permanente) ---
+        const permShop = {
+            costs: {
+                shield: 10,
+                magnet: 25,
+                dash: 50
+            },
+            
+            updateUI: function() {
+                document.getElementById('hangarDiamonds').innerText = authManager.data.diamonds;
+                
+                this.updateButton('shield');
+                this.updateButton('magnet');
+                this.updateButton('dash');
+            },
+            
+            updateButton: function(key) {
+                const btn = document.getElementById(`perm${key.charAt(0).toUpperCase() + key.slice(1)}`);
+                const status = document.getElementById(`status-${key}`);
+                const unlocked = authManager.data.upgrades[key];
+                
+                if(unlocked) {
+                    status.innerText = "INSTALADO";
+                    status.classList.remove('bg-gray-700');
+                    status.classList.add('bg-green-600', 'text-white');
+                    btn.classList.add('border-green-500');
+                    btn.disabled = true;
+                    btn.style.opacity = "1"; // Manter visível
+                } else {
+                    status.innerText = "BLOQUEADO";
+                    btn.disabled = authManager.data.diamonds < this.costs[key];
+                }
+            },
+
+            buy: function(key) {
+                const cost = this.costs[key];
+                if(authManager.data.diamonds >= cost && !authManager.data.upgrades[key]) {
+                    authManager.data.diamonds -= cost;
+                    authManager.data.upgrades[key] = true;
+                    authManager.saveData();
+                    this.updateUI();
+                    // Feedback sonoro ou visual simples
+                    alert(`Upgrade ${key.toUpperCase()} instalado!`);
+                }
+            }
+        };
+
+        function toggleHangar() {
+            const el = document.getElementById('hangarModal');
+            if(el.style.display === 'flex') el.style.display = 'none';
+            else {
+                el.style.display = 'flex';
+                permShop.updateUI();
+            }
+        }
+
+        // ==========================================
+        // MOTOR DO JOGO (MODIFICADO)
+        // ==========================================
+        
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const keys = { w: false, a: false, s: false, d: false, space: false, shift: false };
+        const mouse = { x: 0, y: 0, down: false };
+        
+        let player, projectiles, enemies, particles, popups;
+        let isPlaying = false;
+        let isShopOpen = false;
+        let animationId;
+        let wave = 1;
+
+        // --- Classes Atualizadas ---
+        class Player {
+            constructor() {
+                this.x = canvas.width / 2;
+                this.y = canvas.height / 2;
+                this.radius = 20;
+                this.angle = 0;
+                
+                // Status Base
+                this.maxHp = 100;
+                this.speed = 4;
+                
+                // Aplicar Perm Upgrades
+                if(authManager.data.upgrades.shield) {
+                    this.maxHp = 150; // +50 HP
+                }
+                
+                this.hp = this.maxHp;
+                this.score = 0;
+                this.coins = 0;
+                
+                // Combate
+                this.damage = 10;
+                this.fireDelay = 25;
+                this.multishot = 0;
+                this.lastShot = 0;
+
+                // Pickup Range
+                this.magnetRange = authManager.data.upgrades.magnet ? 150 : 50;
+
+                // Dash Ability
+                this.canDash = authManager.data.upgrades.dash;
+                this.isDashing = false;
+                this.dashCooldown = 0;
+                this.dashMaxCooldown = 120; // 2 segundos (60fps)
+                this.dashDuration = 10;
+                this.invulnerable = false;
+            }
+
+            update() {
+                // Dash Logic
+                if(this.dashCooldown > 0) this.dashCooldown--;
+                
+                if(this.canDash && keys.shift && this.dashCooldown <= 0 && !this.isDashing) {
+                    this.isDashing = true;
+                    this.dashCooldown = this.dashMaxCooldown;
+                    this.invulnerable = true;
+                    // Som de Dash aqui
+                    createExplosion(this.x, this.y, '#00ff9d', 5);
+                }
+
+                let currentSpeed = this.speed;
+                if(this.isDashing) {
+                    currentSpeed *= 4; // Dash Speed
+                    this.dashDuration--;
+                    createExplosion(this.x, this.y, '#00ff9d', 1); // Rastro
+                    if(this.dashDuration <= 0) {
+                        this.isDashing = false;
+                        this.invulnerable = false;
+                        this.dashDuration = 10;
+                    }
+                }
+
+                // Movimento
+                if (keys.w && this.y > this.radius) this.y -= currentSpeed;
+                if (keys.s && this.y < canvas.height - this.radius) this.y += currentSpeed;
+                if (keys.a && this.x > this.radius) this.x -= currentSpeed;
+                if (keys.d && this.x < canvas.width - this.radius) this.x += currentSpeed;
+
+                this.angle = Math.atan2(mouse.y - this.y, mouse.x - this.x);
+
+                // Tiro
+                this.lastShot++;
+                if (mouse.down && this.lastShot >= this.fireDelay && !this.isDashing) {
+                    this.shoot();
+                    this.lastShot = 0;
+                }
+            }
+
+            shoot() {
+                projectiles.push(new Projectile(this.x, this.y, this.angle, this.damage));
+                if(this.multishot > 0) {
+                    const spread = 0.2;
+                    for(let i=1; i <= this.multishot; i++) {
+                        const alt = i % 2 === 0 ? 1 : -1;
+                        const mult = Math.ceil(i/2);
+                        projectiles.push(new Projectile(this.x, this.y, this.angle + (spread * mult * alt), this.damage));
+                    }
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle);
+                
+                // Dash Visual
+                if(this.invulnerable) {
+                    ctx.shadowBlur = 20;
+                    ctx.shadowColor = '#00ff9d';
+                    ctx.strokeStyle = '#ffffff';
+                } else {
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = '#00f3ff';
+                    ctx.strokeStyle = '#00f3ff';
+                }
+
+                ctx.beginPath();
+                ctx.moveTo(20, 0);
+                ctx.lineTo(-15, -15);
+                ctx.lineTo(-10, 0);
+                ctx.lineTo(-15, 15);
+                ctx.closePath();
+                ctx.fillStyle = this.invulnerable ? '#ccffee' : '#0a0a10';
+                ctx.fill();
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Escudo Visual (se tiver upgrade)
+                if(authManager.data.upgrades.shield && this.hp > 100) {
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 30, 0, Math.PI*2);
+                    ctx.strokeStyle = `rgba(0, 100, 255, ${ (this.hp-100)/50 })`;
+                    ctx.stroke();
+                }
+
+                ctx.restore();
+            }
+        }
+
+        class Projectile {
+            constructor(x, y, angle, damage) {
+                this.x = x; this.y = y;
+                this.velocity = { x: Math.cos(angle) * 10, y: Math.sin(angle) * 10 };
+                this.damage = damage; this.radius = 4;
+            }
+            update() { this.x += this.velocity.x; this.y += this.velocity.y; }
+            draw() {
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffff00'; ctx.fill();
+                ctx.shadowBlur = 10; ctx.shadowColor = '#ffff00';
+            }
+        }
+
+        class Enemy {
+            constructor(type, diff) {
+                if (Math.random() < 0.5) {
+                    this.x = Math.random() < 0.5 ? -30 : canvas.width + 30;
+                    this.y = Math.random() * canvas.height;
+                } else {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() < 0.5 ? -30 : canvas.height + 30;
+                }
+                this.type = type;
+                
+                 if(type === 0) { // Basic
+            this.radius = 20; this.color = '#ff00ff'; this.speed = 1.5 + Math.random();
+            this.hp = 30 * diff; this.value = 5;
+        } else if (type === 1) { // Tank
+            this.radius = 35; this.color = '#ff5500'; this.speed = 0.8;
+            this.hp = 80 * diff; this.value = 15;
+        } else if (type === 2) { // Rusher
+            this.radius = 12; this.color = '#00ff00'; this.speed = 3.5;
+            this.hp = 15 * diff; this.value = 8;
+        } 
+        // NOVO: Type 3 - Seeker (Azul Ciano)
+        // Equilibrado, mais forte que o básico
+        else if (type === 3) {
+            this.radius = 25; this.color = '#00ffff'; this.speed = 2.2;
+            this.hp = 60 * diff; this.value = 20;
+        }
+        // NOVO: Type 4 - Goliath (Vermelho Escuro)
+        // Gigante, muito lento, muita vida (Mini-Boss)
+        else if (type === 4) {
+            this.radius = 55; this.color = '#8b0000'; this.speed = 0.4;
+            this.hp = 300 * diff; this.value = 100;
+        }
+        // NOVO: Type 5 - Wasp (Amarelo Elétrico)
+        // Extremamente rápido, minúsculo, morre fácil
+        else if (type === 5) {
+            this.radius = 8; this.color = '#ffffaa'; this.speed = 5.5;
+            this.hp = 10 * diff; this.value = 25;
+        }
+
+        this.maxHp = this.hp;
+            }
+            update() {
+                const angle = Math.atan2(player.y - this.y, player.x - this.x);
+                this.x += Math.cos(angle) * this.speed;
+                this.y += Math.sin(angle) * this.speed;
+            }
+            draw() {
+                ctx.save(); ctx.translate(this.x, this.y);
+                ctx.fillStyle = '#000'; ctx.strokeStyle = this.color; ctx.lineWidth = 2;
+                ctx.shadowBlur = 10; ctx.shadowColor = this.color;
+                ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI*2);
+                ctx.fill(); ctx.stroke(); ctx.restore();
+            }
+        }
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x; this.y = y; this.color = color;
+                this.velocity = { x: (Math.random()-0.5)*8, y: (Math.random()-0.5)*8 };
+                this.alpha = 1;
+            }
+            update() { this.x += this.velocity.x; this.y += this.velocity.y; this.alpha -= 0.05; }
+            draw() {
+                ctx.globalAlpha = this.alpha; ctx.fillStyle = this.color;
+                ctx.beginPath(); ctx.arc(this.x, this.y, 2, 0, Math.PI*2); ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        // --- Sistema de Drops (Coin) ---
+        class Coin {
+            constructor(x, y, val) {
+                this.x = x; this.y = y; this.val = val;
+                this.radius = 6;
+                this.life = 600; // Desaparece se não pegar
+            }
+            update() {
+                this.life--;
+                // Magneto Logic
+                const dist = Math.hypot(player.x - this.x, player.y - this.y);
+                if(dist < player.magnetRange) {
+                    this.x += (player.x - this.x) * 0.1;
+                    this.y += (player.y - this.y) * 0.1;
+                }
+            }
+            draw() {
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2);
+                ctx.fillStyle = '#FFD700'; ctx.fill();
+                ctx.strokeStyle = '#FFA500'; ctx.stroke();
+            }
+        }
+
+        // --- Funções Core ---
+        
+        let difficultyMult = 1;
+        let spawnTimer = 0;
+        let coins = []; // Array de moedas no chão
+
+        function initGame() {
+            player = new Player();
+            projectiles = [];
+            enemies = [];
+            particles = [];
+            coins = [];
+            popups = [];
+            wave = 1;
+            difficultyMult = 1;
+            
+            // Reset In-Game Shop
+            shop.upgrades.damage.level = 1;
+            shop.upgrades.fireRate.level = 1;
+            shop.upgrades.multishot.level = 0;
+            
+            // UI
+            document.getElementById('dashIndicator').style.display = player.canDash ? 'flex' : 'none';
+        }
+
+        function startGame() {
+            initGame();
+            isPlaying = true;
+            document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('gameOverScreen').style.display = 'none';
+            document.getElementById('uiLayer').style.display = 'flex';
+            document.getElementById('uiLayer').classList.remove('hidden');
+            animate();
+        }
+
+        const shop = {
+            upgrades: {
+                damage: { level: 1, max: 10, baseCost: 100, inc: 5 },
+                fireRate: { level: 1, max: 8, baseCost: 150, inc: -2 },
+                multishot: { level: 0, max: 4, baseCost: 500, inc: 1 }
+            },
+            buy: function(key) {
+                if(key === 'heal') {
+                    if(player.coins >= 50 && player.hp < player.maxHp) {
+                        player.coins -= 50; player.hp = Math.min(player.hp + (player.maxHp*0.5), player.maxHp);
+                        this.updateUI();
+                    }
+                    return;
+                }
+                const item = this.upgrades[key];
+                const cost = Math.floor(item.baseCost * Math.pow(1.5, item.level - (key === 'multishot'?0:1)));
+                if(player.coins >= cost && item.level < item.max) {
+                    player.coins -= cost; item.level++;
+                    if(key === 'damage') player.damage += item.inc;
+                    if(key === 'fireRate') player.fireDelay = Math.max(5, player.fireDelay + item.inc);
+                    if(key === 'multishot') player.multishot += item.inc;
+                    this.updateUI();
+                }
+            },
+            updateUI: function() {
+                document.getElementById('shopCoins').innerText = player.coins;
+                ['damage', 'fireRate', 'multishot'].forEach(k => {
+                    const item = this.upgrades[k];
+                    const cost = Math.floor(item.baseCost * Math.pow(1.5, item.level - (k === 'multishot'?0:1)));
+                    const btn = document.getElementById(`btn${k==='fireRate'?'Spd':(k==='damage'?'Dmg':'Multi')}`);
+                    document.getElementById(`lvl-${k}`).innerText = item.level;
+                    document.getElementById(`cost-${k}`).innerText = item.level >= item.max ? "MAX" : cost;
+                    document.getElementById(`bar-${k}`).style.width = `${(item.level/item.max)*100}%`;
+                    btn.disabled = player.coins < cost || item.level >= item.max;
+                });
+            }
+        };
+
+        function toggleShop() {
+            if(!isPlaying) return;
+            isShopOpen = !isShopOpen;
+            if(isShopOpen) {
+                document.getElementById('shopModal').style.display = 'flex';
+                shop.updateUI();
+            } else {
+                document.getElementById('shopModal').style.display = 'none';
+                animate();
+            }
+        }
+
+        function createExplosion(x, y, color, count) {
+            for(let i=0; i<count; i++) particles.push(new Particle(x, y, color));
+        }
+
+        function updateHUD() {
+            const hpP = Math.max(0, (player.hp / player.maxHp) * 100);
+            document.getElementById('hpBar').style.width = `${hpP}%`;
+            document.getElementById('hpBar').style.backgroundColor = hpP < 30 ? '#ff0000' : (hpP > 100 ? '#0088ff' : '#00ff9d'); // Azul se overshield
+            document.getElementById('scoreDisplay').innerText = player.score;
+            document.getElementById('coinDisplay').innerText = player.coins;
+            document.getElementById('waveDisplay').innerText = wave;
+            
+            // Dash UI
+            if(player.canDash) {
+                const dashP = 100 - ((player.dashCooldown / player.dashMaxCooldown) * 100);
+                const dashBar = document.getElementById('dashBar');
+                dashBar.style.width = `${dashP}%`;
+                dashBar.parentElement.classList.toggle('dash-ready', player.dashCooldown <= 0);
+            }
+        }
+
+        function animate() {
+            if (!isPlaying || isShopOpen) return;
+            requestAnimationFrame(animate);
+            ctx.fillStyle = 'rgba(5, 5, 16, 0.3)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            player.update();
+            player.draw();
+
+            // Spawn
+    spawnTimer--;
+    if(spawnTimer <= 0) {
+        let type = 0;
+        const r = Math.random();
+
+        // Wave 8+: Chance de Goliath (Boss Lento)
+        if (wave >= 8 && r > 0.95) type = 4;
+        
+        // Wave 5+: Chance de Seeker (Azul Forte)
+        else if (wave >= 5 && r > 0.80) type = 3;
+        
+        // Wave 4+: Chance de Wasp (Muito Rápido)
+        else if (wave >= 4 && r > 0.70) type = 5;
+        
+        // Wave 3+: Chance de Tank
+        else if (wave >= 3 && r > 0.55) type = 1;
+        
+        // Wave 2+: Chance de Rusher
+        else if (wave >= 2 && r > 0.40) type = 2;
+
+        enemies.push(new Enemy(type, difficultyMult));
+        
+        // Aumenta a velocidade de spawn conforme a wave aumenta
+        spawnTimer = Math.max(15, 90 - (wave * 3));
+    }
+
+            // Projéteis
+            projectiles.forEach((p, i) => {
+                p.update(); p.draw();
+                if(p.x < 0 || p.x > canvas.width || p.y < 0 || p.y > canvas.height) projectiles.splice(i, 1);
+            });
+
+            // Moedas
+            coins.forEach((c, i) => {
+                c.update(); c.draw();
+                const dist = Math.hypot(player.x - c.x, player.y - c.y);
+                if(dist < player.radius + c.radius) {
+                    player.coins += c.val;
+                    coins.splice(i, 1);
+                }
+                if(c.life <= 0) coins.splice(i, 1);
+            });
+
+            // Inimigos
+            enemies.forEach((e, i) => {
+                e.update(); e.draw();
+                
+                // Bala -> Inimigo
+                projectiles.forEach((p, pi) => {
+                    if(Math.hypot(p.x - e.x, p.y - e.y) < e.radius + p.radius) {
+                        e.hp -= p.damage;
+                        projectiles.splice(pi, 1);
+                        createExplosion(e.x, e.y, '#ffff00', 3);
+                        if(e.hp <= 0) {
+                            createExplosion(e.x, e.y, e.color, 15);
+                            player.score += e.value * 10;
+                            // Drop Coin
+                            coins.push(new Coin(e.x, e.y, Math.floor(e.value * (1+Math.random()))));
+                            
+                            enemies.splice(i, 1);
+                            if(player.score > wave * 1000) {
+                                wave++; difficultyMult += 0.2;
+                            }
+                        }
+                    }
+                });
+
+                // Player -> Inimigo
+                if(!player.invulnerable && Math.hypot(player.x - e.x, player.y - e.y) < player.radius + e.radius) {
+                    player.hp -= 20;
+                    enemies.splice(i, 1);
+                    createExplosion(player.x, player.y, '#ff0000', 10);
+                    document.body.classList.add('shake');
+                    setTimeout(()=>document.body.classList.remove('shake'), 500);
+                    
+                    if(player.hp <= 0) {
+                        isPlaying = false;
+                        
+                        // CÁLCULO DE DIAMANTES
+                        const earnedDiamonds = Math.floor(player.score / 500); // 1 diamante a cada 500 pontos
+                        authManager.addDiamonds(earnedDiamonds);
+                        
+                        document.getElementById('finalScore').innerText = player.score;
+                        document.getElementById('finalWave').innerText = wave;
+                        document.getElementById('finalDiamonds').innerText = `+${earnedDiamonds}`;
+                        
+                        document.getElementById('uiLayer').style.display = 'none';
+                        document.getElementById('gameOverScreen').style.display = 'flex';
+                    }
+                }
+            });
+
+            particles.forEach((p, i) => { p.update(); p.draw(); if(p.alpha <= 0) particles.splice(i, 1); });
+            updateHUD();
+        }
+
+        // Inputs
+        window.addEventListener('keydown', e => {
+            const k = e.code;
+            if(k === 'KeyW') keys.w = true;
+            if(k === 'KeyA') keys.a = true;
+            if(k === 'KeyS') keys.s = true;
+            if(k === 'KeyD') keys.d = true;
+            if(k === 'ShiftLeft' || k === 'ShiftRight') keys.shift = true;
+            if(k === 'Space') { if(!isShopOpen) toggleShop(); else toggleShop(); }
+        });
+        window.addEventListener('keyup', e => {
+            if(e.code === 'KeyW') keys.w = false;
+            if(e.code === 'KeyA') keys.a = false;
+            if(e.code === 'KeyS') keys.s = false;
+            if(e.code === 'KeyD') keys.d = false;
+            if(e.code === 'ShiftLeft' || e.code === 'ShiftRight') keys.shift = false;
+        });
+        canvas.addEventListener('mousemove', e => {
+            const r = canvas.getBoundingClientRect();
+            mouse.x = (e.clientX - r.left) * (canvas.width/r.width);
+            mouse.y = (e.clientY - r.top) * (canvas.height/r.height);
+        });
+        canvas.addEventListener('mousedown', () => mouse.down = true);
+        canvas.addEventListener('mouseup', () => mouse.down = false);
+
+    </script>
+</body>
+</html>
