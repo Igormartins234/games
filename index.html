@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neon Void - Space Defender (Connected)</title>
+    <title>Neon Void - Space Defender (Ultimate Edition)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
     
@@ -125,7 +125,10 @@
 
         /* Dash Effect Indicator */
         .dash-ready { box-shadow: 0 0 15px #00ff9d; border-color: #00ff9d; }
-        .dash-cd { opacity: 0.3; }
+
+        /* Custom Glow for Laser Button */
+        .box-shadow-cyan { box-shadow: 0 0 15px rgba(0, 243, 255, 0.3); }
+        .text-shadow-cyan { text-shadow: 0 0 5px rgba(0, 243, 255, 0.8); }
 
     </style>
 </head>
@@ -166,7 +169,7 @@
                 </div>
                 <div class="text-sm text-gray-400 font-mono">WAVE: <span id="waveDisplay" class="text-white text-lg">1</span></div>
                 
-                <!-- Indicador de Dash (NOVO) -->
+                <!-- Indicador de Dash -->
                 <div id="dashIndicator" class="hidden mt-2 items-center gap-2">
                     <span class="text-xs text-green-400 font-bold">DASH [SHIFT]</span>
                     <div class="w-24 h-2 bg-gray-800 rounded overflow-hidden border border-gray-600">
@@ -196,7 +199,6 @@
 
     <!-- Menu Principal -->
     <div id="mainMenu" class="absolute z-20 flex flex-col items-center justify-center text-center hidden">
-        <!-- User Info -->
         <div class="absolute top-4 right-4 text-right">
             <div id="userName" class="text-sm text-gray-400">Visitante</div>
             <div class="flex items-center justify-end gap-2 text-xl font-bold diamond-text">
@@ -284,6 +286,36 @@
                         </div>
                     </div>
                 </button>
+
+                <!-- Upgrade 4: Rapid Fire (NOVO) -->
+                <button id="permRapidFire" class="shop-card p-6 rounded bg-gray-800/80 text-left group border border-red-900" onclick="permShop.buy('rapidFire')">
+                    <div class="flex justify-between">
+                        <div class="text-red-400 font-bold text-xl group-hover:text-red-300">NÚCLEO DE FÓTONS</div>
+                        <div id="status-rapidFire" class="text-xs bg-gray-700 px-2 py-1 rounded">BLOQUEADO</div>
+                    </div>
+                    <div class="text-sm text-gray-400 mt-2 h-12">Sobrecarrega os canhões. Atira 30% mais rápido permanentemente.</div>
+                    <div class="flex justify-between items-end mt-4">
+                        <div class="text-xs text-gray-500 font-mono">PASSIVO</div>
+                        <div class="text-cyan-300 font-bold text-lg flex items-center gap-1">
+                            <span class="text-xs">♦</span> 60
+                        </div>
+                    </div>
+                </button>
+
+                <!-- Upgrade 5: Greed Protocol (NOVO) -->
+                <button id="permGreed" class="shop-card p-6 rounded bg-gray-800/80 text-left group border border-yellow-600" onclick="permShop.buy('greed')">
+                    <div class="flex justify-between">
+                        <div class="text-yellow-400 font-bold text-xl group-hover:text-yellow-300">PROTOCOLO GANÂNCIA</div>
+                        <div id="status-greed" class="text-xs bg-gray-700 px-2 py-1 rounded">BLOQUEADO</div>
+                    </div>
+                    <div class="text-sm text-gray-400 mt-2 h-12">Inicia todas as missões com 500 Créditos para gastar na loja.</div>
+                    <div class="flex justify-between items-end mt-4">
+                        <div class="text-xs text-gray-500 font-mono">PASSIVO</div>
+                        <div class="text-cyan-300 font-bold text-lg flex items-center gap-1">
+                            <span class="text-xs">♦</span> 40
+                        </div>
+                    </div>
+                </button>
             </div>
 
             <div class="mt-8 text-center">
@@ -327,6 +359,16 @@
                     <div class="text-xs text-gray-400">Cura 50%</div>
                     <div class="text-yellow-400 font-bold mt-2">50</div>
                 </button>
+                
+                <!-- Botão Laser (Item Temporário) -->
+                <button id="btnLaser" class="shop-card p-4 rounded bg-gray-800/50 text-left group border border-cyan-400 box-shadow-cyan" onclick="shop.buy('laser')">
+                    <div class="text-white font-bold mb-1 text-shadow-cyan">LASER ORBITAL</div>
+                    <div class="text-xs text-gray-400">Raio perfurante (30s)</div>
+                    <div class="flex justify-between mt-2">
+                        <span class="text-gray-500">TEMPORÁRIO</span> 
+                        <span id="cost-laser" class="text-yellow-400">450</span>
+                    </div>
+                </button>
             </div>
             <div class="mt-8 text-center">
                 <button onclick="toggleShop()" class="px-8 py-2 bg-red-600 hover:bg-red-500 text-white rounded font-bold uppercase text-sm tracking-wider">Fechar</button>
@@ -362,17 +404,17 @@
 
     <script>
         // ==========================================
-        // CONFIGURAÇÃO FIREBASE (PREENCHA AQUI)
+        // CONFIGURAÇÃO FIREBASE
         // ==========================================
         const firebaseConfig = {
-  apiKey: "AIzaSyCBv_7DsUDPva451ZTwN0qxZ9r624T_NBc",
-  authDomain: "navesa-bb3be.firebaseapp.com",
-  projectId: "navesa-bb3be",
-  storageBucket: "navesa-bb3be.firebasestorage.app",
-  messagingSenderId: "969086896980",
-  appId: "1:969086896980:web:89eb7347d2f60d9fe1d6c1"
-};
-        // Verifica se o usuário colocou a config, senão usa modo Mock
+            apiKey: "AIzaSyCBv_7DsUDPva451ZTwN0qxZ9r624T_NBc",
+            authDomain: "navesa-bb3be.firebaseapp.com",
+            projectId: "navesa-bb3be",
+            storageBucket: "navesa-bb3be.firebasestorage.app",
+            messagingSenderId: "969086896980",
+            appId: "1:969086896980:web:89eb7347d2f60d9fe1d6c1"
+        };
+        
         const isFirebaseConfigured = firebaseConfig.apiKey !== "SUA_API_KEY_AQUI";
         let db, auth;
 
@@ -392,7 +434,9 @@
                 upgrades: {
                     shield: false,
                     magnet: false,
-                    dash: false
+                    dash: false,
+                    rapidFire: false,
+                    greed: false
                 }
             },
 
@@ -419,9 +463,7 @@
             },
 
             mockLogin: function() {
-                // Simula login para quem testar sem chaves
                 this.user = { displayName: "Viajante Teste", uid: "test_user_123" };
-                // Tenta carregar do localStorage pra persistir localmente no modo teste
                 const localData = localStorage.getItem('neonVoidData');
                 if(localData) this.data = JSON.parse(localData);
                 this.showMenu();
@@ -430,7 +472,7 @@
             showMenu: function() {
                 document.getElementById('loginScreen').style.display = 'none';
                 document.getElementById('mainMenu').style.display = 'flex';
-                document.getElementById('mainMenu').classList.remove('hidden'); // Ensure logic
+                document.getElementById('mainMenu').classList.remove('hidden');
                 
                 if(this.user) {
                     document.getElementById('userName').innerText = "Cmd. " + this.user.displayName;
@@ -446,8 +488,10 @@
                     db.collection('users').doc(this.user.uid).get().then((doc) => {
                         if (doc.exists) {
                             this.data = doc.data();
+                            // Garantir que campos novos existam
+                            if(this.data.upgrades.rapidFire === undefined) this.data.upgrades.rapidFire = false;
+                            if(this.data.upgrades.greed === undefined) this.data.upgrades.greed = false;
                         } else {
-                            // Criar novo user
                             this.saveData();
                         }
                         document.getElementById('diamondDisplay').innerText = this.data.diamonds;
@@ -460,14 +504,13 @@
                 if(isFirebaseConfigured && this.user) {
                     db.collection('users').doc(this.user.uid).set(this.data);
                 } else if (!isFirebaseConfigured && this.user) {
-                    // Salva no localStorage no modo teste
                     localStorage.setItem('neonVoidData', JSON.stringify(this.data));
                 }
                 document.getElementById('diamondDisplay').innerText = this.data.diamonds;
             },
 
             addDiamonds: function(amount) {
-                if(!this.user) return; // Visitantes não ganham
+                if(!this.user) return;
                 this.data.diamonds += amount;
                 this.saveData();
             },
@@ -484,15 +527,14 @@
             costs: {
                 shield: 10,
                 magnet: 25,
-                dash: 50
+                dash: 50,
+                rapidFire: 60,
+                greed: 40
             },
             
             updateUI: function() {
                 document.getElementById('hangarDiamonds').innerText = authManager.data.diamonds;
-                
-                this.updateButton('shield');
-                this.updateButton('magnet');
-                this.updateButton('dash');
+                ['shield', 'magnet', 'dash', 'rapidFire', 'greed'].forEach(key => this.updateButton(key));
             },
             
             updateButton: function(key) {
@@ -506,9 +548,11 @@
                     status.classList.add('bg-green-600', 'text-white');
                     btn.classList.add('border-green-500');
                     btn.disabled = true;
-                    btn.style.opacity = "1"; // Manter visível
+                    btn.style.opacity = "1";
                 } else {
                     status.innerText = "BLOQUEADO";
+                    status.classList.add('bg-gray-700');
+                    status.classList.remove('bg-green-600');
                     btn.disabled = authManager.data.diamonds < this.costs[key];
                 }
             },
@@ -520,7 +564,6 @@
                     authManager.data.upgrades[key] = true;
                     authManager.saveData();
                     this.updateUI();
-                    // Feedback sonoro ou visual simples
                     alert(`Upgrade ${key.toUpperCase()} instalado!`);
                 }
             }
@@ -534,52 +577,57 @@
                 permShop.updateUI();
             }
         }
+
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const keys = { w: false, a: false, s: false, d: false, space: false, shift: false };
         const mouse = { x: 0, y: 0, down: false };
         
-        let player, projectiles, enemies, particles, popups;
+        let player, projectiles, enemies, particles, coins;
         let isPlaying = false;
         let isShopOpen = false;
-        let animationId;
         let wave = 1;
 
-        // --- Classes Atualizadas ---
+        // --- Classes do Jogo ---
         class Player {
             constructor() {
                 this.x = canvas.width / 2;
                 this.y = canvas.height / 2;
                 this.radius = 20;
                 this.angle = 0;
+                this.laserTimer = 0; // Timer do Laser Orbital
                 
                 // Status Base
                 this.maxHp = 100;
                 this.speed = 4;
                 
-                // Aplicar Perm Upgrades
+                // UPGRADE: Escudo
                 if(authManager.data.upgrades.shield) {
-                    this.maxHp = 150; // +50 HP
+                    this.maxHp = 150;
                 }
                 
                 this.hp = this.maxHp;
                 this.score = 0;
-                this.coins = 0;
+                
+                // UPGRADE: Greed (Começar Rico)
+                this.coins = authManager.data.upgrades.greed ? 500 : 0;
                 
                 // Combate
                 this.damage = 10;
-                this.fireDelay = 25;
+                // UPGRADE: Rapid Fire (Tiro 30% mais rápido)
+                this.fireDelay = authManager.data.upgrades.rapidFire ? 18 : 25;
+                
                 this.multishot = 0;
                 this.lastShot = 0;
 
-                // Pickup Range
+                // UPGRADE: Magneto
                 this.magnetRange = authManager.data.upgrades.magnet ? 150 : 50;
 
-                // Dash Ability
+                // UPGRADE: Dash
                 this.canDash = authManager.data.upgrades.dash;
                 this.isDashing = false;
                 this.dashCooldown = 0;
-                this.dashMaxCooldown = 120; // 2 segundos (60fps)
+                this.dashMaxCooldown = 120;
                 this.dashDuration = 10;
                 this.invulnerable = false;
             }
@@ -592,15 +640,14 @@
                     this.isDashing = true;
                     this.dashCooldown = this.dashMaxCooldown;
                     this.invulnerable = true;
-                    // Som de Dash aqui
                     createExplosion(this.x, this.y, '#00ff9d', 5);
                 }
 
                 let currentSpeed = this.speed;
                 if(this.isDashing) {
-                    currentSpeed *= 4; // Dash Speed
+                    currentSpeed *= 4;
                     this.dashDuration--;
-                    createExplosion(this.x, this.y, '#00ff9d', 1); // Rastro
+                    createExplosion(this.x, this.y, '#00ff9d', 1);
                     if(this.dashDuration <= 0) {
                         this.isDashing = false;
                         this.invulnerable = false;
@@ -616,9 +663,9 @@
 
                 this.angle = Math.atan2(mouse.y - this.y, mouse.x - this.x);
 
-                // Tiro
+                // Tiro (Bloqueado se o Laser estiver ativo)
                 this.lastShot++;
-                if (mouse.down && this.lastShot >= this.fireDelay && !this.isDashing) {
+                if (mouse.down && this.lastShot >= this.fireDelay && !this.isDashing && this.laserTimer <= 0) {
                     this.shoot();
                     this.lastShot = 0;
                 }
@@ -663,7 +710,7 @@
                 ctx.lineWidth = 2;
                 ctx.stroke();
 
-                // Escudo Visual (se tiver upgrade)
+                // Escudo Visual
                 if(authManager.data.upgrades.shield && this.hp > 100) {
                     ctx.beginPath();
                     ctx.arc(0, 0, 30, 0, Math.PI*2);
@@ -700,36 +747,26 @@
                 }
                 this.type = type;
                 
-                 if(type === 0) { // Basic
-            this.radius = 20; this.color = '#ff00ff'; this.speed = 1.5 + Math.random();
-            this.hp = 30 * diff; this.value = 5;
-        } else if (type === 1) { // Tank
-            this.radius = 35; this.color = '#ff5500'; this.speed = 0.8;
-            this.hp = 80 * diff; this.value = 15;
-        } else if (type === 2) { // Rusher
-            this.radius = 12; this.color = '#00ff00'; this.speed = 3.5;
-            this.hp = 15 * diff; this.value = 8;
-        } 
-        // NOVO: Type 3 - Seeker (Azul Ciano)
-        // Equilibrado, mais forte que o básico
-        else if (type === 3) {
-            this.radius = 25; this.color = '#00ffff'; this.speed = 2.2;
-            this.hp = 60 * diff; this.value = 20;
-        }
-        // NOVO: Type 4 - Goliath (Vermelho Escuro)
-        // Gigante, muito lento, muita vida (Mini-Boss)
-        else if (type === 4) {
-            this.radius = 55; this.color = '#8b0000'; this.speed = 0.4;
-            this.hp = 300 * diff; this.value = 100;
-        }
-        // NOVO: Type 5 - Wasp (Amarelo Elétrico)
-        // Extremamente rápido, minúsculo, morre fácil
-        else if (type === 5) {
-            this.radius = 8; this.color = '#ffffaa'; this.speed = 5.5;
-            this.hp = 10 * diff; this.value = 25;
-        }
-
-        this.maxHp = this.hp;
+                if(type === 0) { // Basic
+                    this.radius = 20; this.color = '#ff00ff'; this.speed = 1.5 + Math.random();
+                    this.hp = 30 * diff; this.value = 5;
+                } else if (type === 1) { // Tank
+                    this.radius = 35; this.color = '#ff5500'; this.speed = 0.8;
+                    this.hp = 80 * diff; this.value = 15;
+                } else if (type === 2) { // Rusher
+                    this.radius = 12; this.color = '#00ff00'; this.speed = 3.5;
+                    this.hp = 15 * diff; this.value = 8;
+                } else if (type === 3) { // Seeker (Blue)
+                    this.radius = 25; this.color = '#00ffff'; this.speed = 2.2;
+                    this.hp = 60 * diff; this.value = 20;
+                } else if (type === 4) { // Goliath (Red Boss)
+                    this.radius = 55; this.color = '#8b0000'; this.speed = 0.4;
+                    this.hp = 300 * diff; this.value = 100;
+                } else if (type === 5) { // Wasp (Yellow Fast)
+                    this.radius = 8; this.color = '#ffffaa'; this.speed = 5.5;
+                    this.hp = 10 * diff; this.value = 25;
+                }
+                this.maxHp = this.hp;
             }
             update() {
                 const angle = Math.atan2(player.y - this.y, player.x - this.x);
@@ -759,16 +796,14 @@
             }
         }
 
-        // --- Sistema de Drops (Coin) ---
         class Coin {
             constructor(x, y, val) {
                 this.x = x; this.y = y; this.val = val;
                 this.radius = 6;
-                this.life = 600; // Desaparece se não pegar
+                this.life = 600; 
             }
             update() {
                 this.life--;
-                // Magneto Logic
                 const dist = Math.hypot(player.x - this.x, player.y - this.y);
                 if(dist < player.magnetRange) {
                     this.x += (player.x - this.x) * 0.1;
@@ -781,12 +816,9 @@
                 ctx.strokeStyle = '#FFA500'; ctx.stroke();
             }
         }
-
-        // --- Funções Core ---
         
         let difficultyMult = 1;
         let spawnTimer = 0;
-        let coins = []; // Array de moedas no chão
 
         function initGame() {
             player = new Player();
@@ -794,16 +826,13 @@
             enemies = [];
             particles = [];
             coins = [];
-            popups = [];
             wave = 1;
             difficultyMult = 1;
             
-            // Reset In-Game Shop
             shop.upgrades.damage.level = 1;
             shop.upgrades.fireRate.level = 1;
             shop.upgrades.multishot.level = 0;
             
-            // UI
             document.getElementById('dashIndicator').style.display = player.canDash ? 'flex' : 'none';
         }
 
@@ -831,6 +860,19 @@
                     }
                     return;
                 }
+                
+                // Laser
+                if(key === 'laser') {
+                    const cost = 450;
+                    if(player.coins >= cost) {
+                        player.coins -= cost;
+                        player.laserTimer = 1800;
+                        this.updateUI();
+                        toggleShop();
+                    }
+                    return;
+                }
+
                 const item = this.upgrades[key];
                 const cost = Math.floor(item.baseCost * Math.pow(1.5, item.level - (key === 'multishot'?0:1)));
                 if(player.coins >= cost && item.level < item.max) {
@@ -874,12 +916,11 @@
         function updateHUD() {
             const hpP = Math.max(0, (player.hp / player.maxHp) * 100);
             document.getElementById('hpBar').style.width = `${hpP}%`;
-            document.getElementById('hpBar').style.backgroundColor = hpP < 30 ? '#ff0000' : (hpP > 100 ? '#0088ff' : '#00ff9d'); // Azul se overshield
+            document.getElementById('hpBar').style.backgroundColor = hpP < 30 ? '#ff0000' : (hpP > 100 ? '#0088ff' : '#00ff9d');
             document.getElementById('scoreDisplay').innerText = player.score;
             document.getElementById('coinDisplay').innerText = player.coins;
             document.getElementById('waveDisplay').innerText = wave;
             
-            // Dash UI
             if(player.canDash) {
                 const dashP = 100 - ((player.dashCooldown / player.dashMaxCooldown) * 100);
                 const dashBar = document.getElementById('dashBar');
@@ -896,32 +937,93 @@
             player.update();
             player.draw();
 
+            // --- LÓGICA DO LASER ORBITAL (CORRIGIDA DEFINITIVA) ---
+            if (player.laserTimer > 0) {
+                player.laserTimer--;
+
+                // 1. Desenhar o Laser (Visual)
+                const endX = player.x + Math.cos(player.angle) * 2000;
+                const endY = player.y + Math.sin(player.angle) * 2000;
+
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(player.x, player.y);
+                ctx.lineTo(endX, endY);
+                ctx.lineWidth = 40 + Math.sin(Date.now() / 50) * 10;
+                ctx.strokeStyle = 'rgba(0, 243, 255, 0.2)'; // Brilho
+                ctx.lineCap = 'round';
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(player.x, player.y);
+                ctx.lineTo(endX, endY);
+                ctx.lineWidth = 10;
+                ctx.strokeStyle = '#ffffff'; // Núcleo
+                ctx.stroke();
+                ctx.restore();
+
+                // 2. Colisão e Dano (Automático - Sem precisar clicar)
+                // Loop reverso para poder remover inimigos sem erros
+                for (let i = enemies.length - 1; i >= 0; i--) {
+                    const e = enemies[i];
+                    
+                    // Cálculo vetorial para saber se o inimigo encosta na linha do laser
+                    const dx = e.x - player.x;
+                    const dy = e.y - player.y;
+                    
+                    // Projeção do inimigo na direção do laser
+                    const t = (dx * Math.cos(player.angle) + dy * Math.sin(player.angle));
+                    
+                    // Encontra o ponto na linha do laser mais próximo do inimigo
+                    const closestX = player.x + t * Math.cos(player.angle);
+                    const closestY = player.y + t * Math.sin(player.angle);
+                    
+                    // Distância real entre o inimigo e o laser
+                    const dist = Math.hypot(e.x - closestX, e.y - closestY);
+
+                    // Verifica: 
+                    // 1. t > 0: Inimigo está na frente do player (não atrás)
+                    // 2. dist < ...: Inimigo está tocando a largura do laser
+                    if (t > 0 && dist < e.radius + 35) {
+                        e.hp -= 5; // 300 de Dano por segundo (Mata muito rápido)
+                        
+                        // Efeito visual de Dano (Inimigo pisca branco)
+                        ctx.save();
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                        ctx.beginPath();
+                        ctx.arc(e.x, e.y, e.radius, 0, Math.PI*2);
+                        ctx.fill();
+                        ctx.restore();
+                        
+                        // Verificar Morte
+                        if (e.hp <= 0) {
+                            createExplosion(e.x, e.y, e.color, 15);
+                            player.score += e.value * 10;
+                            
+                            // Drop de moeda
+                            coins.push(new Coin(e.x, e.y, Math.floor(e.value * (1 + Math.random()))));
+                            
+                            // Remove inimigo da lista
+                            enemies.splice(i, 1);
+                        }
+                    }
+                }
+            }
+
             // Spawn
-    spawnTimer--;
-    if(spawnTimer <= 0) {
-        let type = 0;
-        const r = Math.random();
+            spawnTimer--;
+            if(spawnTimer <= 0) {
+                let type = 0;
+                const r = Math.random();
+                if (wave >= 8 && r > 0.95) type = 4;
+                else if (wave >= 5 && r > 0.80) type = 3;
+                else if (wave >= 4 && r > 0.70) type = 5;
+                else if (wave >= 3 && r > 0.55) type = 1;
+                else if (wave >= 2 && r > 0.40) type = 2;
 
-        // Wave 8+: Chance de Goliath (Boss Lento)
-        if (wave >= 8 && r > 0.95) type = 4;
-        
-        // Wave 5+: Chance de Seeker (Azul Forte)
-        else if (wave >= 5 && r > 0.80) type = 3;
-        
-        // Wave 4+: Chance de Wasp (Muito Rápido)
-        else if (wave >= 4 && r > 0.70) type = 5;
-        
-        // Wave 3+: Chance de Tank
-        else if (wave >= 3 && r > 0.55) type = 1;
-        
-        // Wave 2+: Chance de Rusher
-        else if (wave >= 2 && r > 0.40) type = 2;
-
-        enemies.push(new Enemy(type, difficultyMult));
-        
-        // Aumenta a velocidade de spawn conforme a wave aumenta
-        spawnTimer = Math.max(15, 90 - (wave * 3));
-    }
+                enemies.push(new Enemy(type, difficultyMult));
+                spawnTimer = Math.max(15, 90 - (wave * 3));
+            }
 
             // Projéteis
             projectiles.forEach((p, i) => {
@@ -940,11 +1042,10 @@
                 if(c.life <= 0) coins.splice(i, 1);
             });
 
-            // Inimigos
+            // Inimigos e Colisões
             enemies.forEach((e, i) => {
                 e.update(); e.draw();
                 
-                // Bala -> Inimigo
                 projectiles.forEach((p, pi) => {
                     if(Math.hypot(p.x - e.x, p.y - e.y) < e.radius + p.radius) {
                         e.hp -= p.damage;
@@ -953,10 +1054,9 @@
                         if(e.hp <= 0) {
                             createExplosion(e.x, e.y, e.color, 15);
                             player.score += e.value * 10;
-                            // Drop Coin
                             coins.push(new Coin(e.x, e.y, Math.floor(e.value * (1+Math.random()))));
-                            
                             enemies.splice(i, 1);
+                            
                             if(player.score > wave * 1000) {
                                 wave++; difficultyMult += 0.2;
                                 player.coins += 70;
@@ -966,7 +1066,6 @@
                     }
                 });
 
-                // Player -> Inimigo
                 if(!player.invulnerable && Math.hypot(player.x - e.x, player.y - e.y) < player.radius + e.radius) {
                     player.hp -= 20;
                     enemies.splice(i, 1);
@@ -976,9 +1075,7 @@
                     
                     if(player.hp <= 0) {
                         isPlaying = false;
-                        
-                        // CÁLCULO DE DIAMANTES
-                        const earnedDiamonds = Math.floor(player.score / 500); // 1 diamante a cada 500 pontos
+                        const earnedDiamonds = Math.floor(player.score / 500); 
                         authManager.addDiamonds(earnedDiamonds);
                         
                         document.getElementById('finalScore').innerText = player.score;
@@ -1019,19 +1116,14 @@
         });
         canvas.addEventListener('mousedown', () => mouse.down = true);
         canvas.addEventListener('mouseup', () => mouse.down = false);
+        
+        // Anti-Cheat 
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.onkeydown = function(e) {
+            if(e.keyCode == 123) return false;
+            if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false;
+        }
 
     </script>
-    <script>
-    document.addEventListener('contextmenu', event => event.preventDefault());
-
-    document.onkeydown = function(e) {
-        if(e.keyCode == 123) {
-            return false;
-        }
-        if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) {
-            return false;
-        }
-    }
-</script>
 </body>
 </html>
