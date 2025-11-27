@@ -917,6 +917,33 @@
             animate();
         }
 
+        // --- SISTEMA DE ÁUDIO (Sintetizador) ---
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playBuySound() {
+    // Retoma o contexto de áudio se estiver suspenso (regra de navegadores)
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+
+    oscillator.type = 'triangle'; // Timbre estilo 8-bit
+    
+    // Efeito de subida de tom (Moeda)
+    oscillator.frequency.setValueAtTime(1000, audioCtx.currentTime); 
+    oscillator.frequency.exponentialRampToValueAtTime(2000, audioCtx.currentTime + 0.1);
+
+    // Volume caindo
+    gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    oscillator.start();
+    oscillator.stop(audioCtx.currentTime + 0.1);
+}
+
         const shop = {
             upgrades: {
                 damage: { level: 1, max: 10, baseCost: 100, inc: 5 },
@@ -927,6 +954,7 @@
                 if(key === 'heal') {
                     if(player.coins >= 50 && player.hp < player.maxHp) {
                         player.coins -= 50; player.hp = Math.min(player.hp + (player.maxHp*0.5), player.maxHp);
+                        playBuySound()
                         this.updateUI();
                     }
                     return;
@@ -938,6 +966,7 @@
                     if(player.coins >= cost) {
                         player.coins -= cost;
                         player.laserTimer = 2100; // 35 segundos (35 * 60 FPS)
+                        playBuySound()
                         this.updateUI();
                         toggleShop();
                     }
@@ -949,6 +978,7 @@
                     const cost = 900;
                     if(player.coins >= cost) {
                         player.coins -= cost;
+                        playBuySound()
                         // Explosão Central
                         createExplosion(canvas.width/2, canvas.height/2, '#ffaa00', 50);
                         
@@ -979,6 +1009,7 @@
                     if(key === 'damage') player.damage += item.inc;
                     if(key === 'fireRate') player.fireDelay = Math.max(5, player.fireDelay + item.inc);
                     if(key === 'multishot') player.multishot += item.inc;
+                    playBuySound()
                     this.updateUI();
                 }
             },
