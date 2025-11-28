@@ -138,22 +138,52 @@
 
     <!-- TELA DE LOGIN -->
     <div id="loginScreen" class="login-overlay">
-        <div class="glass-panel p-10 rounded-xl text-center max-w-md w-full border border-cyan-500/30">
-            <h2 class="text-4xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500">
-                IDENTIFICAÇÃO
+        <div class="glass-panel p-8 rounded-xl text-center max-w-md w-full border border-cyan-500/30 relative">
+            <h2 class="text-3xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500">
+                IDENTIFICAÇÃO PILOTO
             </h2>
-            <p class="text-gray-400 mb-8">Conecte-se ao banco de dados galáctico para salvar seu progresso e diamantes.</p>
             
-            <button onclick="authManager.loginGoogle()" class="w-full bg-white text-black font-bold py-3 rounded mb-4 hover:bg-gray-200 transition flex items-center justify-center gap-2">
-                <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27c3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12c0 5.05 4.13 10 10.22 10c5.35 0 9.25-3.67 9.25-9.09c0-1.15-.15-1.81-.15-1.81Z"/></svg>
-                ENTRAR COM GOOGLE
+            <!-- Formulário Email/Senha -->
+            <div class="space-y-3 mb-6 text-left">
+                <div>
+                    <input type="text" id="regName" placeholder="Nome do Piloto (Apenas para Registro)" 
+                        class="w-full bg-gray-900/50 border border-gray-600 text-white px-4 py-2 rounded focus:border-cyan-400 outline-none text-sm hidden">
+                </div>
+                <input type="email" id="emailInput" placeholder="Email de Acesso" 
+                    class="w-full bg-gray-900/50 border border-gray-600 text-white px-4 py-2 rounded focus:border-cyan-400 outline-none">
+                <input type="password" id="passInput" placeholder="Senha de Segurança" 
+                    class="w-full bg-gray-900/50 border border-gray-600 text-white px-4 py-2 rounded focus:border-cyan-400 outline-none">
+                
+                <div class="flex gap-2 pt-2">
+                    <button onclick="authManager.loginEmail()" class="flex-1 bg-cyan-700 hover:bg-cyan-600 text-white font-bold py-2 rounded transition text-sm">
+                        ENTRAR
+                    </button>
+                    <button onclick="authManager.toggleRegisterMode()" id="btnToggleReg" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded transition text-sm">
+                        CRIAR CONTA
+                    </button>
+                </div>
+                <!-- Botão Confirmar Registro -->
+                <button onclick="authManager.registerEmail()" id="btnConfirmReg" class="w-full bg-purple-700 hover:bg-purple-600 text-white font-bold py-2 rounded transition text-sm hidden">
+                    CONFIRMAR REGISTRO
+                </button>
+            </div>
+
+            <div class="relative flex py-2 items-center">
+                <div class="flex-grow border-t border-gray-700"></div>
+                <span class="flex-shrink-0 mx-4 text-gray-500 text-xs">OU CONECTE COM</span>
+                <div class="flex-grow border-t border-gray-700"></div>
+            </div>
+
+            <button onclick="authManager.loginGoogle()" class="w-full bg-white text-black font-bold py-2 rounded mb-2 hover:bg-gray-200 transition flex items-center justify-center gap-2 text-sm">
+                <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27c3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12c0 5.05 4.13 10 10.22 10c5.35 0 9.25-3.67 9.25-9.09c0-1.15-.15-1.81-.15-1.81Z"/></svg>
+                GOOGLE
             </button>
             
-            <button onclick="authManager.skipLogin()" class="text-sm text-gray-500 hover:text-white underline mt-4">
-                Jogar como Convidado (Não salva o seu progresso)
+            <button onclick="authManager.skipLogin()" class="text-xs text-gray-500 hover:text-white underline mt-2">
+                Jogar como Visitante (Sem Salvar)
             </button>
 
-            <div id="loginStatus" class="mt-4 text-xs text-cyan-400 h-4"></div>
+            <div id="loginStatus" class="mt-4 text-xs text-red-400 h-4 font-mono min-h-[20px]"></div>
         </div>
     </div>
 
@@ -468,25 +498,87 @@
             console.log("Firebase não configurado. Usando modo Offline/Simulação.");
         }
 
-        // --- Gerenciador de Auth e Dados ---
-        const authManager = {
+       const authManager = {
             user: null,
             data: {
                 diamonds: 0,
-                upgrades: {
-                    shield: false,
-                    magnet: false,
-                    dash: false,
-                    rapidFire: false,
-                    greed: false
+                highScore: 0,
+                upgrades: { shield: false, magnet: false, dash: false, rapidFire: false, greed: false }
+            },
+            isRegistering: false,
+
+            // --- UI Logic ---
+            toggleRegisterMode: function() {
+                this.isRegistering = !this.isRegistering;
+                const regInput = document.getElementById('regName');
+                const btnToggle = document.getElementById('btnToggleReg');
+                const btnConfirm = document.getElementById('btnConfirmReg');
+                const status = document.getElementById('loginStatus');
+
+                if(this.isRegistering) {
+                    regInput.classList.remove('hidden');
+                    btnConfirm.classList.remove('hidden');
+                    btnToggle.innerText = "CANCELAR";
+                    status.innerText = "Preencha os dados para criar conta.";
+                    status.classList.remove('text-red-400'); status.classList.add('text-cyan-400');
+                } else {
+                    regInput.classList.add('hidden');
+                    btnConfirm.classList.add('hidden');
+                    btnToggle.innerText = "CRIAR CONTA";
+                    status.innerText = "";
                 }
             },
 
+            // --- LOGIN EMAIL ---
+            loginEmail: function() {
+                const email = document.getElementById('emailInput').value;
+                const pass = document.getElementById('passInput').value;
+                const status = document.getElementById('loginStatus');
+
+                if(!email || !pass) { status.innerText = "Preencha email e senha."; return; }
+
+                auth.signInWithEmailAndPassword(email, pass)
+                    .then((result) => {
+                        this.user = result.user;
+                        this.loadData();
+                        this.showMenu();
+                    })
+                    .catch((error) => {
+                        status.classList.add('text-red-400');
+                        if(error.code === 'auth/wrong-password') status.innerText = "Senha incorreta.";
+                        else if(error.code === 'auth/user-not-found') status.innerText = "Usuário não encontrado.";
+                        else status.innerText = "Erro: " + error.message;
+                    });
+            },
+
+            // --- REGISTRO EMAIL ---
+            registerEmail: function() {
+                const email = document.getElementById('emailInput').value;
+                const pass = document.getElementById('passInput').value;
+                const name = document.getElementById('regName').value;
+                const status = document.getElementById('loginStatus');
+
+                if(!email || !pass || !name) { status.innerText = "Preencha todos os campos."; return; }
+
+                auth.createUserWithEmailAndPassword(email, pass)
+                    .then((result) => {
+                        const user = result.user;
+                        // Atualizar nome do perfil no Firebase Auth
+                        user.updateProfile({ displayName: name }).then(() => {
+                            this.user = user;
+                            this.saveData(); // Cria o documento inicial no Firestore
+                            this.showMenu();
+                        });
+                    })
+                    .catch((error) => {
+                        status.classList.add('text-red-400');
+                        status.innerText = "Erro: " + error.message;
+                    });
+            },
+
+            // --- GOOGLE LOGIN ---
             loginGoogle: function() {
-                if (!isFirebaseConfigured) {
-                    this.mockLogin();
-                    return;
-                }
+                if (!isFirebaseConfigured) { this.mockLogin(); return; }
                 const provider = new firebase.auth.GoogleAuthProvider();
                 auth.signInWithPopup(provider)
                     .then((result) => {
@@ -495,14 +587,11 @@
                         this.showMenu();
                     })
                     .catch((error) => {
-                        document.getElementById('loginStatus').innerText = "Erro: " + error.message;
+                        document.getElementById('loginStatus').innerText = error.message;
                     });
             },
 
-            skipLogin: function() {
-                this.user = null; // Modo Guest
-                this.showMenu();
-            },
+            skipLogin: function() { this.user = null; this.showMenu(); },
 
             mockLogin: function() {
                 this.user = { displayName: "Viajante Teste", uid: "test_user_123" };
@@ -517,43 +606,47 @@
                 document.getElementById('mainMenu').classList.remove('hidden');
                 
                 if(this.user) {
-                    document.getElementById('userName').innerText = "Cmd. " + this.user.displayName;
+                    // Usa o nome do Auth ou "Piloto" se não tiver
+                    const dName = this.user.displayName || "Piloto";
+                    document.getElementById('userName').innerText = "Cmd. " + dName;
                     document.getElementById('diamondDisplay').innerText = this.data.diamonds;
                 }
                 permShop.updateUI();
             },
 
+            // --- FIRESTORE DATA ---
             loadData: function() {
-                if(!this.user) return;
+                if(!this.user || !isFirebaseConfigured) return;
                 
-                if(isFirebaseConfigured) {
-                    db.collection('users').doc(this.user.uid).get().then((doc) => {
-                        if (doc.exists) {
-                            this.data = doc.data();
-                            // Garantir campos novos
-                            if(this.data.upgrades.rapidFire === undefined) this.data.upgrades.rapidFire = false;
-                            if(this.data.upgrades.greed === undefined) this.data.upgrades.greed = false;
-                        } else {
-                            this.saveData();
-                        }
+                db.collection('users').doc(this.user.uid).get().then((doc) => {
+                    if (doc.exists) {
+                        this.data = doc.data();
+                        // Garante retrocompatibilidade de campos novos
+                        if(this.data.highScore === undefined) this.data.highScore = 0;
+                        if(!this.data.upgrades) this.data.upgrades = {};
                         document.getElementById('diamondDisplay').innerText = this.data.diamonds;
                         permShop.updateUI();
-                    });
-                }
+                    } else {
+                        this.saveData(); // Cria novo se não existir
+                    }
+                });
             },
 
             saveData: function() {
-                if(this.data.highScore === undefined) this.data.highScore = 0;
-
+                if(!this.user) return; // Não salva visitante no localstorage pra não conflitar
                 
+                // Dados a salvar
                 const payload = {
-                    ...this.data,
-                    name: this.user ? this.user.displayName : "Visitante"
+                    diamonds: this.data.diamonds,
+                    highScore: this.data.highScore || 0,
+                    upgrades: this.data.upgrades,
+                    name: this.user.displayName || "Piloto Anônimo",
+                    email: this.user.email
                 };
 
-                if(isFirebaseConfigured && this.user) {
-                    db.collection('users').doc(this.user.uid).set(this.data);
-                } else if (!isFirebaseConfigured && this.user) {
+                if(isFirebaseConfigured) {
+                    db.collection('users').doc(this.user.uid).set(payload, { merge: true });
+                } else {
                     localStorage.setItem('neonVoidData', JSON.stringify(this.data));
                 }
                 document.getElementById('diamondDisplay').innerText = this.data.diamonds;
@@ -1241,74 +1334,82 @@ function playBuySound() {
         }
 
         const leaderboard = {
-    open: function() {
-        document.getElementById('leaderboardModal').style.display = 'flex';
-        this.fetchScores();
-    },
-    
-    close: function() {
-        document.getElementById('leaderboardModal').style.display = 'none';
-    },
-
-    fetchScores: async function() {
-        const listContainer = document.getElementById('leaderboardList');
-        listContainer.innerHTML = '<div class="text-center text-cyan-500 animate-pulse">Buscando dados...</div>';
-
-        try {
-            let topPlayers = [];
-
-            if (isFirebaseConfigured) {
-                // Busca real no Firebase (Ordenado por highScore)
-                const snapshot = await db.collection('users')
-                    .orderBy('highScore', 'desc')
-                    .limit(10)
-                    .get();
-                
-                snapshot.forEach(doc => {
-                    const d = doc.data();
-                    topPlayers.push({ name: d.name || "Desconhecido", score: d.highScore || 0 });
-                });
-            } else {
-                // Modo Simulação/Offline
-                topPlayers = [
-                    { name: "NeonKing", score: 50000 },
-                    { name: "VoidWalker", score: 42500 },
-                    { name: "Cmd. Teste", score: authManager.data.highScore || 0 }, // Seu score local
-                    { name: "StarDust", score: 12000 }
-                ];
-                // Ordenar mock
-                topPlayers.sort((a, b) => b.score - a.score);
-            }
-
-            // Renderizar HTML
-            let html = '';
-            topPlayers.forEach((p, index) => {
-                const rankColor = index === 0 ? 'text-yellow-400' : (index === 1 ? 'text-gray-300' : (index === 2 ? 'text-orange-400' : 'text-gray-500'));
-                const bgClass = index % 2 === 0 ? 'bg-gray-800/30' : 'bg-transparent';
-                
-                html += `
-                <div class="grid grid-cols-3 items-center p-3 rounded ${bgClass} border border-transparent hover:border-gray-700 transition">
-                    <div class="text-2xl font-bold ${rankColor}">#${index + 1}</div>
-                    <div class="text-center text-white truncate">${p.name}</div>
-                    <div class="text-right font-mono text-cyan-300">${p.score.toLocaleString()}</div>
-                </div>`;
-            });
-
-            if(topPlayers.length === 0) html = '<div class="text-center text-gray-500">Nenhum registro encontrado.</div>';
+            open: function() {
+                document.getElementById('leaderboardModal').style.display = 'flex';
+                this.fetchScores();
+            },
             
-            listContainer.innerHTML = html;
+            close: function() {
+                document.getElementById('leaderboardModal').style.display = 'none';
+            },
 
-        } catch (error) {
-            console.error(error);
-            // Se der erro (ex: falta de índice no Firebase), avisa o user
-            if(error.code === 'failed-precondition') {
-                 listContainer.innerHTML = '<div class="text-center text-red-400 p-4">Erro: Índice do Firebase necessário.<br><span class="text-xs text-gray-400">Crie um índice composto para "highScore" (desc).</span></div>';
-            } else {
-                 listContainer.innerHTML = '<div class="text-center text-red-400">Erro ao carregar ranking.</div>';
+            fetchScores: async function() {
+                const listContainer = document.getElementById('leaderboardList');
+                listContainer.innerHTML = '<div class="text-center text-cyan-500 animate-pulse mt-10">Buscando dados na rede neural...</div>';
+
+                try {
+                    let topPlayers = [];
+
+                    if (isFirebaseConfigured) {
+                        // Busca top 10 ordenado por HighScore
+                        const snapshot = await db.collection('users')
+                            .orderBy('highScore', 'desc')
+                            .limit(10)
+                            .get();
+                        
+                        snapshot.forEach(doc => {
+                            const d = doc.data();
+                            topPlayers.push({ 
+                                name: d.name || "Desconhecido", 
+                                score: d.highScore || 0 
+                            });
+                        });
+                    } else {
+                        // Dados falsos se não tiver Firebase
+                        topPlayers = [
+                            { name: "NeonKing", score: 50000 },
+                            { name: "VoidWalker", score: 42500 },
+                            { name: "Você (Local)", score: authManager.data.highScore || 0 },
+                            { name: "StarDust", score: 12000 }
+                        ].sort((a, b) => b.score - a.score);
+                    }
+
+                    // Renderizar Lista
+                    let html = '';
+                    if (topPlayers.length === 0) {
+                        html = '<div class="text-center text-gray-500 mt-10">Nenhum registro encontrado no setor.</div>';
+                    } else {
+                        topPlayers.forEach((p, index) => {
+                            // Cores para top 3
+                            let rankColor = 'text-gray-500';
+                            let rowBorder = 'border-transparent';
+                            
+                            if (index === 0) { rankColor = 'text-yellow-400'; rowBorder = 'border-yellow-500/30 bg-yellow-900/10'; }
+                            else if (index === 1) { rankColor = 'text-gray-300'; rowBorder = 'border-gray-500/30'; }
+                            else if (index === 2) { rankColor = 'text-orange-400'; rowBorder = 'border-orange-500/30'; }
+                            else { rowBorder = 'border-transparent hover:bg-gray-800/50'; }
+
+                            html += `
+                            <div class="grid grid-cols-3 items-center p-3 rounded mb-2 ${rowBorder} transition-all">
+                                <div class="text-xl font-bold ${rankColor} pl-2">#${index + 1}</div>
+                                <div class="text-center text-white truncate font-rajdhani text-lg">${p.name}</div>
+                                <div class="text-right font-mono text-cyan-300 pr-2 tracking-widest">${p.score.toLocaleString()}</div>
+                            </div>`;
+                        });
+                    }
+                    
+                    listContainer.innerHTML = html;
+
+                } catch (error) {
+                    console.error("Erro Ranking:", error);
+                    listContainer.innerHTML = `
+                        <div class="text-center text-red-400 p-6">
+                            ERRO DE CONEXÃO<br>
+                            <span class="text-xs text-gray-400">Verifique se o Índice do Firestore foi criado ou se a API Key está válida.</span>
+                        </div>`;
+                }
             }
-        }
-    }
-};
+        };
     </script>
 </body>
 </html>
