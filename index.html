@@ -129,85 +129,6 @@
         /* Custom Glow for Special Buttons */
         .box-shadow-cyan { box-shadow: 0 0 15px rgba(0, 243, 255, 0.3); }
         .text-shadow-cyan { text-shadow: 0 0 5px rgba(0, 243, 255, 0.8); }
-        
-        /* Power-up effects */
-        .powerup-indicator {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(0,0,0,0.7);
-            padding: 5px 10px;
-            border-radius: 4px;
-            border: 1px solid #00ff9d;
-            font-size: 12px;
-            color: #00ff9d;
-            display: none;
-        }
-        
-        /* Achievement popup */
-        .achievement-popup {
-            position: fixed;
-            top: 20px;
-            right: -300px;
-            background: rgba(0,0,0,0.9);
-            border-left: 4px solid gold;
-            padding: 15px;
-            border-radius: 4px;
-            transition: right 0.5s ease;
-            z-index: 1000;
-            width: 250px;
-        }
-        
-        .achievement-popup.show {
-            right: 20px;
-        }
-        
-        /* Mission tracker */
-        .mission-tracker {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            background: rgba(0,0,0,0.7);
-            padding: 10px;
-            border-radius: 4px;
-            border: 1px solid #ff00ff;
-            max-width: 300px;
-        }
-        
-        /* Ship selection */
-        .ship-option {
-            border: 2px solid transparent;
-            transition: all 0.3s;
-            cursor: pointer;
-        }
-        
-        .ship-option.selected {
-            border-color: #00f3ff;
-            box-shadow: 0 0 15px rgba(0, 243, 255, 0.5);
-        }
-        
-        .ship-option:hover:not(.selected) {
-            border-color: rgba(0, 243, 255, 0.3);
-        }
-
-        /* Custom scrollbar */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(0,0,0,0.2);
-            border-radius: 4px;
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(0, 243, 255, 0.5);
-            border-radius: 4px;
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: rgba(0, 243, 255, 0.8);
-        }
 
     </style>
 </head>
@@ -215,14 +136,14 @@
 
     <div class="cyber-grid"></div>
 
-   <!-- TELA DE LOGIN -->
+    <!-- TELA DE LOGIN -->
     <div id="loginScreen" class="login-overlay">
         <div class="glass-panel p-8 rounded-xl text-center max-w-md w-full border border-cyan-500/30 relative">
             <h2 class="text-3xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500">
                 IDENTIFICAÇÃO PILOTO
             </h2>
             
-            <!-- Login Email/Senha -->
+            <!-- Formulário Email/Senha -->
             <div class="space-y-3 mb-6 text-left">
                 <div>
                     <input type="text" id="regName" placeholder="Nome do Piloto (Apenas para Registro)" 
@@ -241,6 +162,7 @@
                         CRIAR CONTA
                     </button>
                 </div>
+                <!-- Botão Confirmar Registro -->
                 <button onclick="authManager.registerEmail()" id="btnConfirmReg" class="w-full bg-purple-700 hover:bg-purple-600 text-white font-bold py-2 rounded transition text-sm hidden">
                     CONFIRMAR REGISTRO
                 </button>
@@ -252,18 +174,13 @@
                 <div class="flex-grow border-t border-gray-700"></div>
             </div>
 
-            <!-- Botão Google -->
-            <button onclick="authManager.loginGoogle()" class="w-full bg-white text-black font-bold py-2 rounded mb-3 hover:bg-gray-200 transition flex items-center justify-center gap-2 text-sm">
+            <button onclick="authManager.loginGoogle()" class="w-full bg-white text-black font-bold py-2 rounded mb-2 hover:bg-gray-200 transition flex items-center justify-center gap-2 text-sm">
                 <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27c3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12c0 5.05 4.13 10 10.22 10c5.35 0 9.25-3.67 9.25-9.09c0-1.15-.15-1.81-.15-1.81Z"/></svg>
                 GOOGLE
             </button>
             
-            <!-- Botão Anônimo -->
-            <button onclick="authManager.loginAnonymous()" class="w-full bg-gray-800 border border-gray-600 text-gray-300 font-bold py-2 rounded hover:bg-gray-700 hover:text-white transition flex items-center justify-center gap-2 text-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                ENTRAR COMO VISITANTE (SALVA PROGRESSO)
+            <button onclick="authManager.skipLogin()" class="text-xs text-gray-500 hover:text-white underline mt-2">
+                Jogar como Visitante (Sem Salvar)
             </button>
 
             <div id="loginStatus" class="mt-4 text-xs text-red-400 h-4 font-mono min-h-[20px]"></div>
@@ -289,11 +206,6 @@
                         <div id="dashBar" class="h-full bg-green-400 w-full transition-all duration-100"></div>
                     </div>
                 </div>
-                
-                <!-- Indicadores de Power-ups -->
-                <div id="powerupIndicators" class="flex flex-col gap-1 mt-2">
-                    <!-- Será preenchido dinamicamente -->
-                </div>
             </div>
 
             <div class="text-center">
@@ -311,18 +223,6 @@
                 <div class="text-xs text-cyan-400 animate-pulse mt-1 pointer-events-auto">
                     [ESPAÇO] Loja | [SHIFT] Dash (Se desbloqueado)
                 </div>
-            </div>
-        </div>
-        
-        <!-- Rastreador de Missões -->
-        <div id="missionTracker" class="mission-tracker hidden">
-            <div class="text-purple-400 font-bold mb-1">MISSÃO ATIVA</div>
-            <div id="missionText" class="text-sm text-gray-300">Destrua 10 inimigos</div>
-            <div class="flex items-center mt-1">
-                <div class="w-full bg-gray-700 h-2 rounded-full overflow-hidden">
-                    <div id="missionProgress" class="h-full bg-purple-500 transition-all duration-300" style="width: 0%"></div>
-                </div>
-                <span id="missionProgressText" class="text-xs text-gray-400 ml-2">0/10</span>
             </div>
         </div>
     </div>
@@ -345,18 +245,16 @@
         <p class="text-gray-400 mb-10 tracking-widest text-lg">DEFESA ORBITAL // SISTEMA ONLINE</p>
         
         <div class="flex gap-4">
-            <button onclick="showShipSelection()" class="btn-cyber bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-4 px-12 text-xl shadow-[0_0_20px_rgba(6,182,212,0.5)]">
+            <button onclick="startGame()" class="btn-cyber bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-4 px-12 text-xl shadow-[0_0_20px_rgba(6,182,212,0.5)]">
                 INICIAR MISSÃO
             </button>
             <button onclick="toggleHangar()" class="btn-cyber bg-purple-700 hover:bg-purple-600 text-white font-bold py-4 px-8 text-xl shadow-[0_0_20px_rgba(147,51,234,0.5)]">
                 HANGAR (UPGRADES)
             </button>
-            <button onclick="leaderboard.open()" class="btn-cyber bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-4 px-8 text-xl shadow-[0_0_20px_rgba(202,138,4,0.5)]">
-                RANKING
-            </button>
-            <button onclick="showAchievements()" class="btn-cyber bg-green-700 hover:bg-green-600 text-white font-bold py-4 px-8 text-xl shadow-[0_0_20px_rgba(5,150,105,0.5)]">
-                CONQUISTAS
-            </button>
+            <!-- Botão Ranking -->
+<button onclick="leaderboard.open()" class="btn-cyber bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-4 px-8 text-xl shadow-[0_0_20px_rgba(202,138,4,0.5)]">
+    RANKING
+</button>
         </div>
         
         <div class="mt-8 text-sm text-gray-500 font-mono space-x-4">
@@ -364,72 +262,6 @@
             <span>[MOUSE] Atirar</span>
             <span>[SHIFT] Dash</span>
             <span>[ESPAÇO] Loja In-Game</span>
-        </div>
-    </div>
-
-    <!-- Seleção de Nave -->
-    <div id="shipSelectionModal" class="absolute inset-0 z-30 bg-black/90 backdrop-blur-md hidden flex items-center justify-center">
-        <div class="glass-panel p-8 max-w-4xl w-full rounded-xl border border-cyan-500/50">
-            <div class="flex justify-between items-center mb-8 border-b border-cyan-800 pb-4">
-                <h2 class="text-3xl font-bold text-cyan-400">SELECIONE SUA NAVE</h2>
-                <button onclick="hideShipSelection()" class="text-gray-400 hover:text-white">✕</button>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <!-- Nave Básica -->
-                <div id="ship-basic" class="ship-option p-6 rounded bg-gray-800/80 text-center group border border-gray-700 selected" onclick="selectShip('basic')">
-                    <div class="text-cyan-400 font-bold text-xl mb-4">INTERCEPTOR</div>
-                    <div class="flex justify-center mb-4">
-                        <div class="w-16 h-16 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full flex items-center justify-center">
-                            <div class="w-8 h-8 bg-black rounded-full"></div>
-                        </div>
-                    </div>
-                    <div class="text-sm text-gray-400 mb-4">Nave equilibrada com bom desempenho geral.</div>
-                    <div class="text-xs text-gray-500 space-y-1">
-                        <div>HP: 100 | Velocidade: 4</div>
-                        <div>Dano: 10 | Cadência: 25</div>
-                    </div>
-                </div>
-
-                <!-- Nave Tanque -->
-                <div id="ship-tank" class="ship-option p-6 rounded bg-gray-800/80 text-center group border border-gray-700" onclick="selectShip('tank')">
-                    <div class="text-red-400 font-bold text-xl mb-4">DESTRUIDOR</div>
-                    <div class="flex justify-center mb-4">
-                        <div class="w-20 h-16 bg-gradient-to-br from-red-500 to-orange-600 rounded flex items-center justify-center">
-                            <div class="w-10 h-8 bg-black rounded"></div>
-                        </div>
-                    </div>
-                    <div class="text-sm text-gray-400 mb-4">Nave resistente com maior vida e dano.</div>
-                    <div class="text-xs text-gray-500 space-y-1">
-                        <div>HP: 150 | Velocidade: 3</div>
-                        <div>Dano: 15 | Cadência: 30</div>
-                    </div>
-                </div>
-
-                <!-- Nave Rápida -->
-                <div id="ship-speed" class="ship-option p-6 rounded bg-gray-800/80 text-center group border border-gray-700" onclick="selectShip('speed')">
-                    <div class="text-green-400 font-bold text-xl mb-4">CORREDOR</div>
-                    <div class="flex justify-center mb-4">
-                        <div class="w-12 h-16 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center">
-                            <div class="w-6 h-8 bg-black rounded-full"></div>
-                        </div>
-                    </div>
-                    <div class="text-sm text-gray-400 mb-4">Nave veloz com alta cadência de tiro.</div>
-                    <div class="text-xs text-gray-500 space-y-1">
-                        <div>HP: 80 | Velocidade: 6</div>
-                        <div>Dano: 8 | Cadência: 15</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex justify-center gap-4">
-                <button onclick="hideShipSelection()" class="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded font-bold">
-                    VOLTAR
-                </button>
-                <button onclick="startGame()" class="px-6 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded font-bold">
-                    CONFIRMAR E INICIAR
-                </button>
-            </div>
         </div>
     </div>
 
@@ -518,21 +350,6 @@
                         </div>
                     </div>
                 </button>
-                
-                <!-- Upgrade 6: Power-up Chance -->
-                <button id="permPowerup" class="shop-card p-6 rounded bg-gray-800/80 text-left group border border-pink-600" onclick="permShop.buy('powerup')">
-                    <div class="flex justify-between">
-                        <div class="text-pink-400 font-bold text-xl group-hover:text-pink-300">SORTE DO COMBATE</div>
-                        <div id="status-powerup" class="text-xs bg-gray-700 px-2 py-1 rounded">BLOQUEADO</div>
-                    </div>
-                    <div class="text-sm text-gray-400 mt-2 h-12">Aumenta a chance de inimigos droparem power-ups em 15%.</div>
-                    <div class="flex justify-between items-end mt-4">
-                        <div class="text-xs text-gray-500 font-mono">PASSIVO</div>
-                        <div class="text-cyan-300 font-bold text-lg flex items-center gap-1">
-                            <span class="text-xs">♦</span> 35
-                        </div>
-                    </div>
-                </button>
             </div>
 
             <div class="mt-8 text-center">
@@ -544,52 +361,32 @@
     </div>
 
     <!-- RANKING MODAL -->
-    <div id="leaderboardModal" class="absolute inset-0 z-30 bg-black/90 backdrop-blur-md hidden flex items-center justify-center">
-        <div class="glass-panel p-8 max-w-2xl w-full rounded-xl border border-yellow-500/50">
-            <div class="flex justify-between items-center mb-6 border-b border-yellow-800 pb-4">
-                <h2 class="text-3xl font-bold text-yellow-400">TOP COMANDANTES</h2>
-                <button onclick="leaderboard.close()" class="text-gray-400 hover:text-white">✕</button>
-            </div>
+<div id="leaderboardModal" class="absolute inset-0 z-30 bg-black/90 backdrop-blur-md hidden flex items-center justify-center">
+    <div class="glass-panel p-8 max-w-2xl w-full rounded-xl border border-yellow-500/50">
+        <div class="flex justify-between items-center mb-6 border-b border-yellow-800 pb-4">
+            <h2 class="text-3xl font-bold text-yellow-400">TOP COMANDANTES</h2>
+            <button onclick="leaderboard.close()" class="text-gray-400 hover:text-white">✕</button>
+        </div>
 
-            <!-- Cabeçalho da Tabela -->
-            <div class="grid grid-cols-3 text-cyan-300 font-bold mb-4 px-4 text-sm tracking-widest">
-                <div class="text-left">POSIÇÃO</div>
-                <div class="text-center">PILOTO</div>
-                <div class="text-right">RECORD (PONTOS)</div>
-            </div>
+        <!-- Cabeçalho da Tabela -->
+        <div class="grid grid-cols-3 text-cyan-300 font-bold mb-4 px-4 text-sm tracking-widest">
+            <div class="text-left">POSIÇÃO</div>
+            <div class="text-center">PILOTO</div>
+            <div class="text-right">RECORD (PONTOS)</div>
+        </div>
 
-            <!-- Lista Dinâmica -->
-            <div id="leaderboardList" class="space-y-2 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
-                <div class="text-center text-gray-500 py-10">Carregando dados da rede neural...</div>
-            </div>
+        <!-- Lista Dinâmica -->
+        <div id="leaderboardList" class="space-y-2 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
+            <div class="text-center text-gray-500 py-10">Carregando dados da rede neural...</div>
+        </div>
 
-            <div class="mt-8 text-center">
-                <button onclick="leaderboard.close()" class="px-8 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded font-bold uppercase text-sm tracking-wider">
-                    FECHAR
-                </button>
-            </div>
+        <div class="mt-8 text-center">
+            <button onclick="leaderboard.close()" class="px-8 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded font-bold uppercase text-sm tracking-wider">
+                FECHAR
+            </button>
         </div>
     </div>
-    
-    <!-- CONQUISTAS MODAL -->
-    <div id="achievementsModal" class="absolute inset-0 z-30 bg-black/90 backdrop-blur-md hidden flex items-center justify-center">
-        <div class="glass-panel p-8 max-w-4xl w-full rounded-xl border border-green-500/50">
-            <div class="flex justify-between items-center mb-6 border-b border-green-800 pb-4">
-                <h2 class="text-3xl font-bold text-green-400">CONQUISTAS</h2>
-                <button onclick="hideAchievements()" class="text-gray-400 hover:text-white">✕</button>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
-                <!-- Conquistas serão preenchidas dinamicamente -->
-            </div>
-
-            <div class="mt-8 text-center">
-                <button onclick="hideAchievements()" class="px-8 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded font-bold uppercase text-sm tracking-wider">
-                    FECHAR
-                </button>
-            </div>
-        </div>
-    </div>
+</div>
 
     <!-- Loja In-Game -->
     <div id="shopModal" class="absolute inset-0 z-30 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center">
@@ -644,16 +441,6 @@
                         <span id="cost-nuke" class="text-yellow-400">900</span>
                     </div>
                 </button>
-                
-                <!-- Botão Escudo Temporário -->
-                <button id="btnShield" class="shop-card p-4 rounded bg-gray-800/50 text-left group border border-blue-500" onclick="shop.buy('shield')">
-                    <div class="text-blue-400 font-bold mb-1">ESCUDO TEMPORÁRIO</div>
-                    <div class="text-xs text-gray-400">Invencibilidade por 10s</div>
-                    <div class="flex justify-between mt-2">
-                        <span class="text-gray-500">TEMPORÁRIO</span> 
-                        <span id="cost-shield" class="text-yellow-400">300</span>
-                    </div>
-                </button>
             </div>
             <div class="mt-8 text-center">
                 <button onclick="toggleShop()" class="px-8 py-2 bg-red-600 hover:bg-red-500 text-white rounded font-bold uppercase text-sm tracking-wider">Fechar</button>
@@ -681,17 +468,6 @@
         <button onclick="authManager.returnToMenu()" class="btn-cyber bg-white text-black font-bold py-3 px-8 text-lg">
             VOLTAR AO MENU
         </button>
-    </div>
-
-    <!-- Popup de Conquistas -->
-    <div id="achievementPopup" class="achievement-popup">
-        <div class="flex items-center gap-3">
-            <div class="text-yellow-400 text-2xl">🏆</div>
-            <div>
-                <div class="text-yellow-400 font-bold text-sm">CONQUISTA DESBLOQUEADA!</div>
-                <div id="achievementTitle" class="text-white text-xs"></div>
-            </div>
-        </div>
     </div>
 
     <div id="gameContainer" class="relative">
@@ -722,40 +498,12 @@
             console.log("Firebase não configurado. Usando modo Offline/Simulação.");
         }
 
-        // Variáveis globais para novas funcionalidades
-        let selectedShip = 'basic';
-        let powerups = [];
-        let activePowerups = {};
-        let missions = [];
-        let currentMission = null;
-        let missionProgress = 0;
-        let achievements = {};
-        let enemiesKilled = 0;
-        let totalCoinsCollected = 0;
-        let totalPlayTime = 0;
-        let gameStartTime = 0;
-
-        const authManager = {
+       const authManager = {
             user: null,
             data: {
                 diamonds: 0,
                 highScore: 0,
-                upgrades: { 
-                    shield: false, 
-                    magnet: false, 
-                    dash: false, 
-                    rapidFire: false, 
-                    greed: false,
-                    powerup: false
-                },
-                achievements: {},
-                ships: { basic: true, tank: false, speed: false },
-                stats: {
-                    enemiesKilled: 0,
-                    totalCoins: 0,
-                    totalPlayTime: 0,
-                    missionsCompleted: 0
-                }
+                upgrades: { shield: false, magnet: false, dash: false, rapidFire: false, greed: false }
             },
             isRegistering: false,
 
@@ -781,26 +529,6 @@
                 }
             },
 
-            // --- LOGIN ANÔNIMO (NOVO) ---
-            loginAnonymous: function() {
-                if (!isFirebaseConfigured) { this.mockLogin(); return; }
-                
-                const status = document.getElementById('loginStatus');
-                status.innerText = "Autenticando anonimamente...";
-                status.classList.remove('text-red-400'); status.classList.add('text-yellow-400');
-
-                auth.signInAnonymously()
-                    .then((result) => {
-                        this.user = result.user;
-                        this.loadData();
-                        this.showMenu();
-                    })
-                    .catch((error) => {
-                        status.classList.add('text-red-400');
-                        status.innerText = "Erro Anônimo: " + error.message;
-                    });
-            },
-
             // --- LOGIN EMAIL ---
             loginEmail: function() {
                 const email = document.getElementById('emailInput').value;
@@ -817,7 +545,9 @@
                     })
                     .catch((error) => {
                         status.classList.add('text-red-400');
-                        status.innerText = "Erro: " + error.message;
+                        if(error.code === 'auth/wrong-password') status.innerText = "Senha incorreta.";
+                        else if(error.code === 'auth/user-not-found') status.innerText = "Usuário não encontrado.";
+                        else status.innerText = "Erro: " + error.message;
                     });
             },
 
@@ -833,9 +563,10 @@
                 auth.createUserWithEmailAndPassword(email, pass)
                     .then((result) => {
                         const user = result.user;
+                        // Atualizar nome do perfil no Firebase Auth
                         user.updateProfile({ displayName: name }).then(() => {
                             this.user = user;
-                            this.saveData(); 
+                            this.saveData(); // Cria o documento inicial no Firestore
                             this.showMenu();
                         });
                     })
@@ -860,9 +591,10 @@
                     });
             },
 
-            // Mock para testes offline
+            skipLogin: function() { this.user = null; this.showMenu(); },
+
             mockLogin: function() {
-                this.user = { displayName: "Viajante Offline", uid: "offline_user" };
+                this.user = { displayName: "Viajante Teste", uid: "test_user_123" };
                 const localData = localStorage.getItem('neonVoidData');
                 if(localData) this.data = JSON.parse(localData);
                 this.showMenu();
@@ -874,15 +606,12 @@
                 document.getElementById('mainMenu').classList.remove('hidden');
                 
                 if(this.user) {
-                    // Se for anônimo, displayName é null. Criamos um nome visual.
-                    let dName = this.user.displayName;
-                    if(!dName) dName = "Anônimo-" + this.user.uid.substring(0, 5);
-
+                    // Usa o nome do Auth ou "Piloto" se não tiver
+                    const dName = this.user.displayName || "Piloto";
                     document.getElementById('userName').innerText = "Cmd. " + dName;
                     document.getElementById('diamondDisplay').innerText = this.data.diamonds;
                 }
                 permShop.updateUI();
-                updateAchievementsUI();
             },
 
             // --- FIRESTORE DATA ---
@@ -892,43 +621,27 @@
                 db.collection('users').doc(this.user.uid).get().then((doc) => {
                     if (doc.exists) {
                         this.data = doc.data();
-                        // Retrocompatibilidade
+                        // Garante retrocompatibilidade de campos novos
                         if(this.data.highScore === undefined) this.data.highScore = 0;
                         if(!this.data.upgrades) this.data.upgrades = {};
-                        if(!this.data.achievements) this.data.achievements = {};
-                        if(!this.data.ships) this.data.ships = { basic: true };
-                        if(!this.data.stats) this.data.stats = {
-                            enemiesKilled: 0,
-                            totalCoins: 0,
-                            totalPlayTime: 0,
-                            missionsCompleted: 0
-                        };
-                        
                         document.getElementById('diamondDisplay').innerText = this.data.diamonds;
                         permShop.updateUI();
-                        updateAchievementsUI();
                     } else {
-                        this.saveData(); // Cria documento para usuário novo/anônimo
+                        this.saveData(); // Cria novo se não existir
                     }
                 });
             },
 
             saveData: function() {
-                if(!this.user) return;
+                if(!this.user) return; // Não salva visitante no localstorage pra não conflitar
                 
-                // Define um nome para salvar no banco se o usuário for anônimo
-                let saveName = this.user.displayName;
-                if(!saveName) saveName = "Anônimo-" + this.user.uid.substring(0, 5);
-
+                // Dados a salvar
                 const payload = {
                     diamonds: this.data.diamonds,
                     highScore: this.data.highScore || 0,
                     upgrades: this.data.upgrades,
-                    achievements: this.data.achievements,
-                    ships: this.data.ships,
-                    stats: this.data.stats,
-                    name: saveName, 
-                    email: this.user.email || "anonymous"
+                    name: this.user.displayName || "Piloto Anônimo",
+                    email: this.user.email
                 };
 
                 if(isFirebaseConfigured) {
@@ -946,27 +659,9 @@
             },
             
             returnToMenu: function() {
-                // Atualizar estatísticas
-                if(gameStartTime > 0) {
-                    this.data.stats.totalPlayTime += (Date.now() - gameStartTime);
-                    gameStartTime = 0;
-                }
-                
-                this.saveData();
-                
                 document.getElementById('gameOverScreen').style.display = 'none';
                 document.getElementById('mainMenu').style.display = 'flex';
                 this.showMenu();
-            },
-            
-            unlockAchievement: function(id) {
-                if(!this.data.achievements[id]) {
-                    this.data.achievements[id] = true;
-                    this.saveData();
-                    showAchievementPopup(id);
-                    return true;
-                }
-                return false;
             }
         };
 
@@ -977,13 +672,12 @@
                 magnet: 25,
                 dash: 50,
                 rapidFire: 60,
-                greed: 40,
-                powerup: 35
+                greed: 40
             },
             
             updateUI: function() {
                 document.getElementById('hangarDiamonds').innerText = authManager.data.diamonds;
-                ['shield', 'magnet', 'dash', 'rapidFire', 'greed', 'powerup'].forEach(key => this.updateButton(key));
+                ['shield', 'magnet', 'dash', 'rapidFire', 'greed'].forEach(key => this.updateButton(key));
             },
             
             updateButton: function(key) {
@@ -1027,420 +721,6 @@
             }
         }
 
-        // --- Sistema de Seleção de Naves ---
-        function showShipSelection() {
-            document.getElementById('shipSelectionModal').style.display = 'flex';
-            updateShipSelectionUI();
-        }
-        
-        function hideShipSelection() {
-            document.getElementById('shipSelectionModal').style.display = 'none';
-        }
-        
-        function selectShip(shipType) {
-            if(!authManager.data.ships[shipType]) {
-                alert("Esta nave ainda não está disponível. Desbloqueie-a completando conquistas!");
-                return;
-            }
-            
-            selectedShip = shipType;
-            updateShipSelectionUI();
-        }
-        
-        function updateShipSelectionUI() {
-            // Remover seleção de todas as naves
-            document.querySelectorAll('.ship-option').forEach(option => {
-                option.classList.remove('selected');
-            });
-            
-            // Adicionar seleção à nave atual
-            document.getElementById(`ship-${selectedShip}`).classList.add('selected');
-            
-            // Atualizar status de desbloqueio
-            Object.keys(authManager.data.ships).forEach(shipType => {
-                const shipElement = document.getElementById(`ship-${shipType}`);
-                if(!authManager.data.ships[shipType]) {
-                    shipElement.style.opacity = "0.6";
-                    shipElement.style.cursor = "not-allowed";
-                } else {
-                    shipElement.style.opacity = "1";
-                    shipElement.style.cursor = "pointer";
-                }
-            });
-        }
-
-        // --- Sistema de Conquistas ---
-        function showAchievements() {
-            document.getElementById('achievementsModal').style.display = 'flex';
-            updateAchievementsUI();
-        }
-        
-        function hideAchievements() {
-            document.getElementById('achievementsModal').style.display = 'none';
-        }
-        
-        function updateAchievementsUI() {
-            const container = document.querySelector('#achievementsModal .grid');
-            if(!container) return;
-            
-            const achievementsList = [
-                { id: 'first_blood', title: 'Primeiro Sangue', description: 'Destrua seu primeiro inimigo', reward: 5 },
-                { id: 'coin_collector', title: 'Colecionador de Moedas', description: 'Colete 1000 moedas no total', reward: 10 },
-                { id: 'wave_master', title: 'Mestre das Ondas', description: 'Alcance a onda 10', reward: 15 },
-                { id: 'untouchable', title: 'Intocável', description: 'Complete uma onda sem tomar dano', reward: 20 },
-                { id: 'shopping_spree', title: 'Comprador Compulsivo', description: 'Compre todos os upgrades de uma sessão', reward: 25 },
-                { id: 'veteran', title: 'Veterano', description: 'Jogue por mais de 1 hora no total', reward: 30 },
-                { id: 'unlock_tank', title: 'Tanque de Guerra', description: 'Destrua 500 inimigos no total', reward: 0, ship: 'tank' },
-                { id: 'unlock_speed', title: 'Velocista', description: 'Colete 5000 moedas no total', reward: 0, ship: 'speed' }
-            ];
-            
-            let html = '';
-            achievementsList.forEach(ach => {
-                const unlocked = authManager.data.achievements[ach.id] || false;
-                
-                html += `
-                <div class="p-4 rounded bg-gray-800/50 border ${unlocked ? 'border-green-500' : 'border-gray-700'}">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <div class="font-bold ${unlocked ? 'text-green-400' : 'text-gray-400'}">${ach.title}</div>
-                            <div class="text-sm text-gray-400 mt-1">${ach.description}</div>
-                        </div>
-                        <div class="text-right">
-                            ${unlocked ? 
-                                '<span class="text-green-400 text-sm">DESBLOQUEADA</span>' : 
-                                `<span class="text-yellow-400 text-sm">+${ach.reward} ♦</span>`
-                            }
-                        </div>
-                    </div>
-                    ${!unlocked && ach.ship ? 
-                        `<div class="mt-2 text-xs text-cyan-400">Recompensa: Desbloqueia a nave ${ach.ship.toUpperCase()}</div>` : 
-                        ''
-                    }
-                </div>`;
-            });
-            
-            container.innerHTML = html;
-        }
-        
-        function showAchievementPopup(achievementId) {
-            const achievementsList = {
-                'first_blood': { title: 'Primeiro Sangue' },
-                'coin_collector': { title: 'Colecionador de Moedas' },
-                'wave_master': { title: 'Mestre das Ondas' },
-                'untouchable': { title: 'Intocável' },
-                'shopping_spree': { title: 'Comprador Compulsivo' },
-                'veteran': { title: 'Veterano' },
-                'unlock_tank': { title: 'Tanque de Guerra' },
-                'unlock_speed': { title: 'Velocista' }
-            };
-            
-            const achievement = achievementsList[achievementId];
-            if(!achievement) return;
-            
-            const popup = document.getElementById('achievementPopup');
-            document.getElementById('achievementTitle').innerText = achievement.title;
-            
-            popup.classList.add('show');
-            
-            setTimeout(() => {
-                popup.classList.remove('show');
-            }, 3000);
-        }
-
-        // --- Sistema de Missões ---
-        function generateMission() {
-            const missionTypes = [
-                { type: 'kill', target: 10 + Math.floor(wave * 2), text: `Destrua ${10 + Math.floor(wave * 2)} inimigos` },
-                { type: 'collect', target: 200 + (wave * 50), text: `Colete ${200 + (wave * 50)} moedas` },
-                { type: 'survive', target: 120, text: `Sobreviva por 2 minutos` }
-            ];
-            
-            return missionTypes[Math.floor(Math.random() * missionTypes.length)];
-        }
-        
-        function updateMissionProgress() {
-            if(!currentMission) return;
-            
-            let progress = 0;
-            switch(currentMission.type) {
-                case 'kill':
-                    progress = enemiesKilled;
-                    break;
-                case 'collect':
-                    progress = totalCoinsCollected;
-                    break;
-                case 'survive':
-                    progress = Math.floor((Date.now() - gameStartTime) / 1000);
-                    break;
-            }
-            
-            missionProgress = progress;
-            const percent = Math.min(100, (progress / currentMission.target) * 100);
-            
-            document.getElementById('missionProgress').style.width = `${percent}%`;
-            document.getElementById('missionProgressText').innerText = `${progress}/${currentMission.target}`;
-            
-            // Verificar se a missão foi completada
-            if(progress >= currentMission.target) {
-                completeMission();
-            }
-        }
-        
-        function completeMission() {
-            if(!currentMission) return;
-            
-            // Recompensa por completar missão
-            const reward = 100 + (wave * 20);
-            player.coins += reward;
-            
-            // Mostrar notificação
-            createFloatingText(player.x, player.y, `Missão Completa! +${reward}`, '#00ff00');
-            
-            // Atualizar estatísticas
-            authManager.data.stats.missionsCompleted++;
-            
-            // Gerar nova missão
-            currentMission = generateMission();
-            missionProgress = 0;
-            
-            // Atualizar UI
-            document.getElementById('missionText').innerText = currentMission.text;
-            document.getElementById('missionProgress').style.width = '0%';
-            document.getElementById('missionProgressText').innerText = `0/${currentMission.target}`;
-        }
-
-        // --- Sistema de Power-ups ---
-        class Powerup {
-            constructor(x, y, type) {
-                this.x = x;
-                this.y = y;
-                this.type = type;
-                this.radius = 8;
-                this.life = 600;
-                
-                // Definir cores e efeitos baseados no tipo
-                switch(type) {
-                    case 'health':
-                        this.color = '#00ff00';
-                        this.glow = '#00ff00';
-                        break;
-                    case 'speed':
-                        this.color = '#00ffff';
-                        this.glow = '#00ffff';
-                        break;
-                    case 'damage':
-                        this.color = '#ff0000';
-                        this.glow = '#ff0000';
-                        break;
-                    case 'shield':
-                        this.color = '#0000ff';
-                        this.glow = '#0000ff';
-                        break;
-                }
-            }
-            
-            update() {
-                this.life--;
-                
-                // Movimento em direção ao jogador (mais lento que moedas)
-                const dist = Math.hypot(player.x - this.x, player.y - this.y);
-                if(dist < player.magnetRange) {
-                    this.x += (player.x - this.x) * 0.05;
-                    this.y += (player.y - this.y) * 0.05;
-                }
-            }
-            
-            draw() {
-                ctx.save();
-                
-                // Efeito de brilho
-                ctx.shadowBlur = 15;
-                ctx.shadowColor = this.glow;
-                
-                // Desenhar power-up
-                ctx.fillStyle = this.color;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Símbolo interno baseado no tipo
-                ctx.fillStyle = '#000';
-                ctx.shadowBlur = 0;
-                
-                switch(this.type) {
-                    case 'health':
-                        // Cruz
-                        ctx.fillRect(this.x - 2, this.y - 5, 4, 10);
-                        ctx.fillRect(this.x - 5, this.y - 2, 10, 4);
-                        break;
-                    case 'speed':
-                        // Raio
-                        ctx.beginPath();
-                        ctx.moveTo(this.x - 4, this.y + 3);
-                        ctx.lineTo(this.x, this.y - 4);
-                        ctx.lineTo(this.x + 4, this.y + 3);
-                        ctx.lineTo(this.x, this.y - 1);
-                        ctx.closePath();
-                        ctx.fill();
-                        break;
-                    case 'damage':
-                        // Estrela
-                        ctx.beginPath();
-                        for(let i = 0; i < 5; i++) {
-                            const angle = (i * 2 * Math.PI / 5) - Math.PI / 2;
-                            const x = this.x + Math.cos(angle) * 4;
-                            const y = this.y + Math.sin(angle) * 4;
-                            if(i === 0) ctx.moveTo(x, y);
-                            else ctx.lineTo(x, y);
-                        }
-                        ctx.closePath();
-                        ctx.fill();
-                        break;
-                    case 'shield':
-                        // Escudo
-                        ctx.beginPath();
-                        ctx.arc(this.x, this.y, 4, 0, Math.PI * 2);
-                        ctx.fill();
-                        ctx.fillStyle = this.color;
-                        ctx.beginPath();
-                        ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
-                        ctx.fill();
-                        break;
-                }
-                
-                ctx.restore();
-            }
-            
-            apply() {
-                switch(this.type) {
-                    case 'health':
-                        player.hp = Math.min(player.maxHp, player.hp + 30);
-                        createFloatingText(player.x, player.y, '+30 HP', '#00ff00');
-                        break;
-                    case 'speed':
-                        activePowerups.speed = 300; // 5 segundos a 60 FPS
-                        player.speed *= 1.5;
-                        createFloatingText(player.x, player.y, 'VELOCIDADE AUMENTADA', '#00ffff');
-                        break;
-                    case 'damage':
-                        activePowerups.damage = 300;
-                        player.damage *= 1.5;
-                        createFloatingText(player.x, player.y, 'DANO AUMENTADO', '#ff0000');
-                        break;
-                    case 'shield':
-                        activePowerups.shield = 300;
-                        player.invulnerable = true;
-                        createFloatingText(player.x, player.y, 'ESCUDO ATIVADO', '#0000ff');
-                        break;
-                }
-                
-                updatePowerupIndicators();
-            }
-        }
-        
-        function updatePowerups() {
-            // Atualizar power-ups ativos
-            Object.keys(activePowerups).forEach(key => {
-                if(activePowerups[key] > 0) {
-                    activePowerups[key]--;
-                    
-                    // Quando o power-up expira
-                    if(activePowerups[key] <= 0) {
-                        switch(key) {
-                            case 'speed':
-                                player.speed /= 1.5;
-                                break;
-                            case 'damage':
-                                player.damage /= 1.5;
-                                break;
-                            case 'shield':
-                                player.invulnerable = false;
-                                break;
-                        }
-                        delete activePowerups[key];
-                        updatePowerupIndicators();
-                    }
-                }
-            });
-            
-            // Atualizar power-ups no mapa
-            powerups.forEach((p, i) => {
-                p.update();
-                p.draw();
-                
-                // Verificar colisão com o jogador
-                const dist = Math.hypot(player.x - p.x, player.y - p.y);
-                if(dist < player.radius + p.radius) {
-                    p.apply();
-                    powerups.splice(i, 1);
-                }
-                
-                // Remover se expirou
-                if(p.life <= 0) {
-                    powerups.splice(i, 1);
-                }
-            });
-        }
-        
-        function updatePowerupIndicators() {
-            const container = document.getElementById('powerupIndicators');
-            container.innerHTML = '';
-            
-            Object.keys(activePowerups).forEach(key => {
-                const timeLeft = Math.ceil(activePowerups[key] / 60);
-                let text, color;
-                
-                switch(key) {
-                    case 'speed':
-                        text = `VELOCIDADE (${timeLeft}s)`;
-                        color = 'text-cyan-400';
-                        break;
-                    case 'damage':
-                        text = `DANO (${timeLeft}s)`;
-                        color = 'text-red-400';
-                        break;
-                    case 'shield':
-                        text = `ESCUDO (${timeLeft}s)`;
-                        color = 'text-blue-400';
-                        break;
-                }
-                
-                const indicator = document.createElement('div');
-                indicator.className = `text-xs ${color} font-bold`;
-                indicator.innerText = text;
-                container.appendChild(indicator);
-            });
-        }
-        
-        function createFloatingText(x, y, text, color) {
-            // Criar elemento de texto flutuante
-            const floatingText = document.createElement('div');
-            floatingText.innerText = text;
-            floatingText.style.position = 'absolute';
-            floatingText.style.left = `${x}px`;
-            floatingText.style.top = `${y}px`;
-            floatingText.style.color = color;
-            floatingText.style.fontWeight = 'bold';
-            floatingText.style.textShadow = `0 0 5px ${color}`;
-            floatingText.style.pointerEvents = 'none';
-            floatingText.style.zIndex = '100';
-            floatingText.style.transition = 'all 1s ease-out';
-            floatingText.style.transform = 'translate(-50%, -50%)';
-            
-            document.getElementById('gameContainer').appendChild(floatingText);
-            
-            // Animação
-            setTimeout(() => {
-                floatingText.style.top = `${y - 50}px`;
-                floatingText.style.opacity = '0';
-            }, 10);
-            
-            // Remover após animação
-            setTimeout(() => {
-                document.getElementById('gameContainer').removeChild(floatingText);
-            }, 1000);
-        }
-
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const keys = { w: false, a: false, s: false, d: false, space: false, shift: false };
@@ -1454,38 +734,19 @@
         // --- Classes do Jogo ---
         class Player {
             constructor() {
-                // Configurações baseadas na nave selecionada
-                switch(selectedShip) {
-                    case 'basic':
-                        this.maxHp = 100;
-                        this.speed = 4;
-                        this.damage = 10;
-                        this.fireDelay = 25;
-                        break;
-                    case 'tank':
-                        this.maxHp = 150;
-                        this.speed = 3;
-                        this.damage = 15;
-                        this.fireDelay = 30;
-                        break;
-                    case 'speed':
-                        this.maxHp = 80;
-                        this.speed = 6;
-                        this.damage = 8;
-                        this.fireDelay = 15;
-                        break;
-                }
-                
                 this.x = canvas.width / 2;
                 this.y = canvas.height / 2;
                 this.radius = 20;
                 this.angle = 0;
                 this.laserTimer = 0; // Timer do Laser Orbital
-                this.shieldTimer = 0; // Timer do Escudo Temporário
+                
+                // Status Base
+                this.maxHp = 100;
+                this.speed = 4;
                 
                 // UPGRADE: Escudo
                 if(authManager.data.upgrades.shield) {
-                    this.maxHp = Math.floor(this.maxHp * 1.5);
+                    this.maxHp = 150;
                 }
                 
                 this.hp = this.maxHp;
@@ -1495,6 +756,10 @@
                 this.coins = authManager.data.upgrades.greed ? 500 : 0;
                 
                 // Combate
+                this.damage = 10;
+                // UPGRADE: Rapid Fire
+                this.fireDelay = authManager.data.upgrades.rapidFire ? 18 : 25;
+                
                 this.multishot = 0;
                 this.lastShot = 0;
 
@@ -1508,11 +773,6 @@
                 this.dashMaxCooldown = 120;
                 this.dashDuration = 10;
                 this.invulnerable = false;
-                
-                // UPGRADE: Rapid Fire
-                if(authManager.data.upgrades.rapidFire) {
-                    this.fireDelay = Math.max(5, this.fireDelay - 7);
-                }
             }
 
             update() {
@@ -1552,14 +812,6 @@
                     this.shoot();
                     this.lastShot = 0;
                 }
-                
-                // Atualizar escudo temporário
-                if(this.shieldTimer > 0) {
-                    this.shieldTimer--;
-                    if(this.shieldTimer <= 0) {
-                        this.invulnerable = false;
-                    }
-                }
             }
 
             shoot() {
@@ -1582,7 +834,7 @@
                 // Dash Visual
                 if(this.invulnerable) {
                     ctx.shadowBlur = 20;
-                    ctx.shadowColor = this.shieldTimer > 0 ? '#0000ff' : '#00ff9d';
+                    ctx.shadowColor = '#00ff9d';
                     ctx.strokeStyle = '#ffffff';
                 } else {
                     ctx.shadowBlur = 15;
@@ -1590,30 +842,11 @@
                     ctx.strokeStyle = '#00f3ff';
                 }
 
-                // Desenho da nave baseado no tipo
                 ctx.beginPath();
-                
-                switch(selectedShip) {
-                    case 'basic':
-                        ctx.moveTo(20, 0);
-                        ctx.lineTo(-15, -15);
-                        ctx.lineTo(-10, 0);
-                        ctx.lineTo(-15, 15);
-                        break;
-                    case 'tank':
-                        ctx.moveTo(15, 0);
-                        ctx.lineTo(-20, -12);
-                        ctx.lineTo(-20, 12);
-                        ctx.closePath();
-                        break;
-                    case 'speed':
-                        ctx.moveTo(25, 0);
-                        ctx.lineTo(-10, -10);
-                        ctx.lineTo(-5, 0);
-                        ctx.lineTo(-10, 10);
-                        break;
-                }
-                
+                ctx.moveTo(20, 0);
+                ctx.lineTo(-15, -15);
+                ctx.lineTo(-10, 0);
+                ctx.lineTo(-15, 15);
                 ctx.closePath();
                 ctx.fillStyle = this.invulnerable ? '#ccffee' : '#0a0a10';
                 ctx.fill();
@@ -1621,19 +854,10 @@
                 ctx.stroke();
 
                 // Escudo Visual
-                if(authManager.data.upgrades.shield && this.hp > this.maxHp * 0.66) {
+                if(authManager.data.upgrades.shield && this.hp > 100) {
                     ctx.beginPath();
                     ctx.arc(0, 0, 30, 0, Math.PI*2);
-                    ctx.strokeStyle = `rgba(0, 100, 255, ${ (this.hp - (this.maxHp * 0.66)) / (this.maxHp * 0.33) })`;
-                    ctx.stroke();
-                }
-                
-                // Escudo temporário visual
-                if(this.shieldTimer > 0) {
-                    ctx.beginPath();
-                    ctx.arc(0, 0, 35, 0, Math.PI*2);
-                    ctx.strokeStyle = `rgba(0, 150, 255, 0.7)`;
-                    ctx.lineWidth = 3;
+                    ctx.strokeStyle = `rgba(0, 100, 255, ${ (this.hp-100)/50 })`;
                     ctx.stroke();
                 }
 
@@ -1684,11 +908,6 @@
                 } else if (type === 5) { // Wasp (Yellow Fast)
                     this.radius = 8; this.color = '#ffffaa'; this.speed = 5.5;
                     this.hp = 10 * diff; this.value = 25;
-                } else if (type === 6) { // Shooter (Purple)
-                    this.radius = 18; this.color = '#aa00ff'; this.speed = 1.2;
-                    this.hp = 40 * diff; this.value = 30;
-                    this.shootTimer = 0;
-                    this.shootDelay = 120; // Atira a cada 2 segundos
                 }
                 this.maxHp = this.hp;
             }
@@ -1696,22 +915,7 @@
                 const angle = Math.atan2(player.y - this.y, player.x - this.x);
                 this.x += Math.cos(angle) * this.speed;
                 this.y += Math.sin(angle) * this.speed;
-                
-                // Lógica de tiro para inimigos atiradores
-                if(this.type === 6) {
-                    this.shootTimer++;
-                    if(this.shootTimer >= this.shootDelay) {
-                        this.shoot();
-                        this.shootTimer = 0;
-                    }
-                }
             }
-            
-            shoot() {
-                const angle = Math.atan2(player.y - this.y, player.x - this.x);
-                projectiles.push(new EnemyProjectile(this.x, this.y, angle, 5));
-            }
-            
             draw() {
                 ctx.save(); ctx.translate(this.x, this.y);
                 
@@ -1720,14 +924,6 @@
                 ctx.shadowBlur = 10; ctx.shadowColor = this.color;
                 ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI*2);
                 ctx.fill(); ctx.stroke();
-                
-                // Desenho especial para atiradores
-                if(this.type === 6) {
-                    ctx.fillStyle = this.color;
-                    ctx.beginPath();
-                    ctx.arc(0, 0, this.radius * 0.6, 0, Math.PI*2);
-                    ctx.fill();
-                }
 
                 // --- BARRA DE VIDA DO INIMIGO ---
                 const barWidth = 30;
@@ -1745,20 +941,6 @@
                 // --------------------------------
 
                 ctx.restore();
-            }
-        }
-        
-        class EnemyProjectile {
-            constructor(x, y, angle, damage) {
-                this.x = x; this.y = y;
-                this.velocity = { x: Math.cos(angle) * 5, y: Math.sin(angle) * 5 };
-                this.damage = damage; this.radius = 3;
-            }
-            update() { this.x += this.velocity.x; this.y += this.velocity.y; }
-            draw() {
-                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = '#ff00ff'; ctx.fill();
-                ctx.shadowBlur = 5; ctx.shadowColor = '#ff00ff';
             }
         }
 
@@ -1808,20 +990,8 @@
             enemies = [];
             particles = [];
             coins = [];
-            powerups = [];
-            activePowerups = {};
             wave = 1;
             difficultyMult = 1;
-            enemiesKilled = 0;
-            totalCoinsCollected = 0;
-            gameStartTime = Date.now();
-            
-            // Gerar missão inicial
-            currentMission = generateMission();
-            document.getElementById('missionText').innerText = currentMission.text;
-            document.getElementById('missionProgress').style.width = '0%';
-            document.getElementById('missionProgressText').innerText = `0/${currentMission.target}`;
-            document.getElementById('missionTracker').classList.remove('hidden');
             
             shop.upgrades.damage.level = 1;
             shop.upgrades.fireRate.level = 1;
@@ -1834,7 +1004,6 @@
             initGame();
             isPlaying = true;
             document.getElementById('mainMenu').style.display = 'none';
-            document.getElementById('shipSelectionModal').style.display = 'none';
             document.getElementById('gameOverScreen').style.display = 'none';
             document.getElementById('uiLayer').style.display = 'flex';
             document.getElementById('uiLayer').classList.remove('hidden');
@@ -1842,31 +1011,31 @@
         }
 
         // --- SISTEMA DE ÁUDIO (Sintetizador) ---
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-        function playBuySound() {
-            // Retoma o contexto de áudio se estiver suspenso (regra de navegadores)
-            if (audioCtx.state === 'suspended') audioCtx.resume();
+function playBuySound() {
+    // Retoma o contexto de áudio se estiver suspenso (regra de navegadores)
+    if (audioCtx.state === 'suspended') audioCtx.resume();
 
-            const oscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
 
-            oscillator.type = 'triangle'; // Timbre estilo 8-bit
-            
-            // Efeito de subida de tom (Moeda)
-            oscillator.frequency.setValueAtTime(1000, audioCtx.currentTime); 
-            oscillator.frequency.exponentialRampToValueAtTime(2000, audioCtx.currentTime + 0.1);
+    oscillator.type = 'triangle'; // Timbre estilo 8-bit
+    
+    // Efeito de subida de tom (Moeda)
+    oscillator.frequency.setValueAtTime(1000, audioCtx.currentTime); 
+    oscillator.frequency.exponentialRampToValueAtTime(2000, audioCtx.currentTime + 0.1);
 
-            // Volume caindo
-            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+    // Volume caindo
+    gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
 
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
 
-            oscillator.start();
-            oscillator.stop(audioCtx.currentTime + 0.1);
-        }
+    oscillator.start();
+    oscillator.stop(audioCtx.currentTime + 0.1);
+}
 
         const shop = {
             upgrades: {
@@ -1920,20 +1089,6 @@
                         ctx.fillRect(0,0, canvas.width, canvas.height);
                         ctx.fillStyle = oldFill;
 
-                        this.updateUI();
-                        toggleShop();
-                    }
-                    return;
-                }
-                
-                // Compra do Escudo Temporário
-                if(key === 'shield') {
-                    const cost = 300;
-                    if(player.coins >= cost) {
-                        player.coins -= cost;
-                        player.shieldTimer = 600; // 10 segundos
-                        player.invulnerable = true;
-                        playBuySound()
                         this.updateUI();
                         toggleShop();
                     }
@@ -2064,8 +1219,7 @@
             if(spawnTimer <= 0) {
                 let type = 0;
                 const r = Math.random();
-                if (wave >= 10 && r > 0.98) type = 6; // Shooter
-                else if (wave >= 8 && r > 0.95) type = 4;
+                if (wave >= 8 && r > 0.95) type = 4;
                 else if (wave >= 5 && r > 0.80) type = 3;
                 else if (wave >= 4 && r > 0.70) type = 5;
                 else if (wave >= 3 && r > 0.55) type = 1;
@@ -2078,25 +1232,7 @@
             // Projéteis
             projectiles.forEach((p, i) => {
                 p.update(); p.draw();
-                
-                // Remover projéteis que saíram da tela
-                if(p.x < 0 || p.x > canvas.width || p.y < 0 || p.y > canvas.height) {
-                    projectiles.splice(i, 1);
-                }
-                
-                // Colisão de projéteis inimigos com o jogador
-                if(p instanceof EnemyProjectile && !player.invulnerable) {
-                    const dist = Math.hypot(player.x - p.x, player.y - p.y);
-                    if(dist < player.radius + p.radius) {
-                        player.hp -= p.damage;
-                        projectiles.splice(i, 1);
-                        createExplosion(p.x, p.y, '#ff00ff', 5);
-                        
-                        if(player.hp <= 0) {
-                            gameOver();
-                        }
-                    }
-                }
+                if(p.x < 0 || p.x > canvas.width || p.y < 0 || p.y > canvas.height) projectiles.splice(i, 1);
             });
 
             // Moedas
@@ -2105,36 +1241,16 @@
                 const dist = Math.hypot(player.x - c.x, player.y - c.y);
                 if(dist < player.radius + c.radius) {
                     player.coins += c.val;
-                    totalCoinsCollected += c.val;
-                    authManager.data.stats.totalCoins += c.val;
                     coins.splice(i, 1);
-                    
-                    // Verificar conquista de coleta de moedas
-                    if(authManager.data.stats.totalCoins >= 1000 && !authManager.data.achievements.coin_collector) {
-                        authManager.unlockAchievement('coin_collector');
-                        authManager.addDiamonds(10);
-                    }
-                    
-                    if(authManager.data.stats.totalCoins >= 5000 && !authManager.data.ships.speed) {
-                        authManager.data.ships.speed = true;
-                        authManager.unlockAchievement('unlock_speed');
-                        authManager.saveData();
-                    }
                 }
                 if(c.life <= 0) coins.splice(i, 1);
             });
-            
-            // Power-ups
-            updatePowerups();
 
             // Inimigos e Colisões
             enemies.forEach((e, i) => {
                 e.update(); e.draw();
                 
                 projectiles.forEach((p, pi) => {
-                    // Ignorar colisão entre projéteis inimigos e inimigos
-                    if(p instanceof EnemyProjectile) return;
-                    
                     if(Math.hypot(p.x - e.x, p.y - e.y) < e.radius + p.radius) {
                         e.hp -= p.damage;
                         projectiles.splice(pi, 1);
@@ -2144,39 +1260,11 @@
                             player.score += e.value * 10;
                             coins.push(new Coin(e.x, e.y, Math.floor(e.value * (1+Math.random()))));
                             enemies.splice(i, 1);
-                            enemiesKilled++;
-                            authManager.data.stats.enemiesKilled++;
-                            
-                            // Chance de dropar power-up
-                            const powerupChance = authManager.data.upgrades.powerup ? 0.15 : 0.05;
-                            if(Math.random() < powerupChance) {
-                                const powerupTypes = ['health', 'speed', 'damage', 'shield'];
-                                const randomType = powerupTypes[Math.floor(Math.random() * powerupTypes.length)];
-                                powerups.push(new Powerup(e.x, e.y, randomType));
-                            }
-                            
-                            // Verificar conquistas
-                            if(enemiesKilled === 1 && !authManager.data.achievements.first_blood) {
-                                authManager.unlockAchievement('first_blood');
-                                authManager.addDiamonds(5);
-                            }
-                            
-                            if(authManager.data.stats.enemiesKilled >= 500 && !authManager.data.ships.tank) {
-                                authManager.data.ships.tank = true;
-                                authManager.unlockAchievement('unlock_tank');
-                                authManager.saveData();
-                            }
                             
                             if(player.score > wave * 1000) {
                                 wave++; difficultyMult += 0.2;
                                 player.coins += 70;
                                 createExplosion(player.x, player.y, '#FFD700', 10);
-                                
-                                // Verificar conquista de ondas
-                                if(wave >= 10 && !authManager.data.achievements.wave_master) {
-                                    authManager.unlockAchievement('wave_master');
-                                    authManager.addDiamonds(15);
-                                }
                             }
                         }
                     }
@@ -2190,45 +1278,27 @@
                     setTimeout(()=>document.body.classList.remove('shake'), 500);
                     
                     if(player.hp <= 0) {
-                        gameOver();
+                        isPlaying = false;
+                        const earnedDiamonds = Math.floor(player.score / 500); 
+                        authManager.addDiamonds(earnedDiamonds);
+
+                        if (!authManager.data.highScore || player.score > authManager.data.highScore) {
+                            authManager.data.highScore = player.score;
+                            authManager.saveData(); // Salva no Firebase
+                        }
+                        
+                        document.getElementById('finalScore').innerText = player.score;
+                        document.getElementById('finalWave').innerText = wave;
+                        document.getElementById('finalDiamonds').innerText = `+${earnedDiamonds}`;
+                        
+                        document.getElementById('uiLayer').style.display = 'none';
+                        document.getElementById('gameOverScreen').style.display = 'flex';
                     }
                 }
             });
 
             particles.forEach((p, i) => { p.update(); p.draw(); if(p.alpha <= 0) particles.splice(i, 1); });
-            
-            // Atualizar progresso da missão
-            updateMissionProgress();
-            
             updateHUD();
-        }
-        
-        function gameOver() {
-            isPlaying = false;
-            const earnedDiamonds = Math.floor(player.score / 500); 
-            authManager.addDiamonds(earnedDiamonds);
-
-            if (!authManager.data.highScore || player.score > authManager.data.highScore) {
-                authManager.data.highScore = player.score;
-                authManager.saveData(); // Salva no Firebase
-            }
-            
-            // Atualizar tempo total de jogo
-            authManager.data.stats.totalPlayTime += (Date.now() - gameStartTime);
-            
-            // Verificar conquista de tempo de jogo
-            if(authManager.data.stats.totalPlayTime >= 3600000 && !authManager.data.achievements.veteran) { // 1 hora em milissegundos
-                authManager.unlockAchievement('veteran');
-                authManager.addDiamonds(30);
-            }
-            
-            document.getElementById('finalScore').innerText = player.score;
-            document.getElementById('finalWave').innerText = wave;
-            document.getElementById('finalDiamonds').innerText = `+${earnedDiamonds}`;
-            
-            document.getElementById('uiLayer').style.display = 'none';
-            document.getElementById('missionTracker').classList.add('hidden');
-            document.getElementById('gameOverScreen').style.display = 'flex';
         }
 
         // Inputs
@@ -2239,10 +1309,7 @@
             if(k === 'KeyS') keys.s = true;
             if(k === 'KeyD') keys.d = true;
             if(k === 'ShiftLeft' || k === 'ShiftRight') keys.shift = true;
-            if(k === 'Space') { 
-                e.preventDefault();
-                if(!isShopOpen) toggleShop(); 
-            }
+            if(k === 'Space') { if(!isShopOpen) toggleShop(); else toggleShop(); }
         });
         window.addEventListener('keyup', e => {
             if(e.code === 'KeyW') keys.w = false;
