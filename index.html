@@ -136,14 +136,14 @@
 
     <div class="cyber-grid"></div>
 
-    <!-- TELA DE LOGIN -->
+   <!-- TELA DE LOGIN -->
     <div id="loginScreen" class="login-overlay">
         <div class="glass-panel p-8 rounded-xl text-center max-w-md w-full border border-cyan-500/30 relative">
             <h2 class="text-3xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500">
                 IDENTIFICAÇÃO PILOTO
             </h2>
             
-            <!-- Formulário Email/Senha -->
+            <!-- Login Email/Senha -->
             <div class="space-y-3 mb-6 text-left">
                 <div>
                     <input type="text" id="regName" placeholder="Nome do Piloto (Apenas para Registro)" 
@@ -162,7 +162,6 @@
                         CRIAR CONTA
                     </button>
                 </div>
-                <!-- Botão Confirmar Registro -->
                 <button onclick="authManager.registerEmail()" id="btnConfirmReg" class="w-full bg-purple-700 hover:bg-purple-600 text-white font-bold py-2 rounded transition text-sm hidden">
                     CONFIRMAR REGISTRO
                 </button>
@@ -174,13 +173,18 @@
                 <div class="flex-grow border-t border-gray-700"></div>
             </div>
 
-            <button onclick="authManager.loginGoogle()" class="w-full bg-white text-black font-bold py-2 rounded mb-2 hover:bg-gray-200 transition flex items-center justify-center gap-2 text-sm">
+            <!-- Botão Google -->
+            <button onclick="authManager.loginGoogle()" class="w-full bg-white text-black font-bold py-2 rounded mb-3 hover:bg-gray-200 transition flex items-center justify-center gap-2 text-sm">
                 <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27c3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12c0 5.05 4.13 10 10.22 10c5.35 0 9.25-3.67 9.25-9.09c0-1.15-.15-1.81-.15-1.81Z"/></svg>
                 GOOGLE
             </button>
             
-            <button onclick="authManager.skipLogin()" class="text-xs text-gray-500 hover:text-white underline mt-2">
-                Jogar como Visitante (Sem Salvar)
+            <!-- Botão Anônimo -->
+            <button onclick="authManager.loginAnonymous()" class="w-full bg-gray-800 border border-gray-600 text-gray-300 font-bold py-2 rounded hover:bg-gray-700 hover:text-white transition flex items-center justify-center gap-2 text-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                ENTRAR COMO VISITANTE (SALVA PROGRESSO)
             </button>
 
             <div id="loginStatus" class="mt-4 text-xs text-red-400 h-4 font-mono min-h-[20px]"></div>
@@ -529,6 +533,26 @@
                 }
             },
 
+            // --- LOGIN ANÔNIMO (NOVO) ---
+            loginAnonymous: function() {
+                if (!isFirebaseConfigured) { this.mockLogin(); return; }
+                
+                const status = document.getElementById('loginStatus');
+                status.innerText = "Autenticando anonimamente...";
+                status.classList.remove('text-red-400'); status.classList.add('text-yellow-400');
+
+                auth.signInAnonymously()
+                    .then((result) => {
+                        this.user = result.user;
+                        this.loadData();
+                        this.showMenu();
+                    })
+                    .catch((error) => {
+                        status.classList.add('text-red-400');
+                        status.innerText = "Erro Anônimo: " + error.message;
+                    });
+            },
+
             // --- LOGIN EMAIL ---
             loginEmail: function() {
                 const email = document.getElementById('emailInput').value;
@@ -545,9 +569,7 @@
                     })
                     .catch((error) => {
                         status.classList.add('text-red-400');
-                        if(error.code === 'auth/wrong-password') status.innerText = "Senha incorreta.";
-                        else if(error.code === 'auth/user-not-found') status.innerText = "Usuário não encontrado.";
-                        else status.innerText = "Erro: " + error.message;
+                        status.innerText = "Erro: " + error.message;
                     });
             },
 
@@ -563,10 +585,9 @@
                 auth.createUserWithEmailAndPassword(email, pass)
                     .then((result) => {
                         const user = result.user;
-                        // Atualizar nome do perfil no Firebase Auth
                         user.updateProfile({ displayName: name }).then(() => {
                             this.user = user;
-                            this.saveData(); // Cria o documento inicial no Firestore
+                            this.saveData(); 
                             this.showMenu();
                         });
                     })
@@ -591,10 +612,9 @@
                     });
             },
 
-            skipLogin: function() { this.user = null; this.showMenu(); },
-
+            // Mock para testes offline
             mockLogin: function() {
-                this.user = { displayName: "Viajante Teste", uid: "test_user_123" };
+                this.user = { displayName: "Viajante Offline", uid: "offline_user" };
                 const localData = localStorage.getItem('neonVoidData');
                 if(localData) this.data = JSON.parse(localData);
                 this.showMenu();
@@ -606,8 +626,10 @@
                 document.getElementById('mainMenu').classList.remove('hidden');
                 
                 if(this.user) {
-                    // Usa o nome do Auth ou "Piloto" se não tiver
-                    const dName = this.user.displayName || "Piloto";
+                    // Se for anônimo, displayName é null. Criamos um nome visual.
+                    let dName = this.user.displayName;
+                    if(!dName) dName = "Anônimo-" + this.user.uid.substring(0, 5);
+
                     document.getElementById('userName').innerText = "Cmd. " + dName;
                     document.getElementById('diamondDisplay').innerText = this.data.diamonds;
                 }
@@ -621,27 +643,30 @@
                 db.collection('users').doc(this.user.uid).get().then((doc) => {
                     if (doc.exists) {
                         this.data = doc.data();
-                        // Garante retrocompatibilidade de campos novos
+                        // Retrocompatibilidade
                         if(this.data.highScore === undefined) this.data.highScore = 0;
                         if(!this.data.upgrades) this.data.upgrades = {};
                         document.getElementById('diamondDisplay').innerText = this.data.diamonds;
                         permShop.updateUI();
                     } else {
-                        this.saveData(); // Cria novo se não existir
+                        this.saveData(); // Cria documento para usuário novo/anônimo
                     }
                 });
             },
 
             saveData: function() {
-                if(!this.user) return; // Não salva visitante no localstorage pra não conflitar
+                if(!this.user) return;
                 
-                // Dados a salvar
+                // Define um nome para salvar no banco se o usuário for anônimo
+                let saveName = this.user.displayName;
+                if(!saveName) saveName = "Anônimo-" + this.user.uid.substring(0, 5);
+
                 const payload = {
                     diamonds: this.data.diamonds,
                     highScore: this.data.highScore || 0,
                     upgrades: this.data.upgrades,
-                    name: this.user.displayName || "Piloto Anônimo",
-                    email: this.user.email
+                    name: saveName, 
+                    email: this.user.email || "anonymous"
                 };
 
                 if(isFirebaseConfigured) {
