@@ -242,6 +242,13 @@
                 <span id="diamondDisplay">0</span>
             </div>
         </div>
+        <button onclick="audioManager.toggle()" id="btnAudio" class="mt-2 flex items-center justify-end gap-2 text-gray-400 hover:text-white transition cursor-pointer">
+            <span id="audioText" class="text-xs font-mono uppercase">Audio: OFF</span>
+            <svg id="audioIcon" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                <path id="audioWave" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+            </svg>
+        </button>
 
         <h1 class="text-7xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 drop-shadow-[0_0_15px_rgba(0,243,255,0.5)]">
             NEON VOID
@@ -690,6 +697,217 @@
             }
         };
 
+                // ==========================================
+        // SISTEMA DE ÁUDIO PROCEDURAL (SYNTHWAVE)
+        // ==========================================
+        const audioManager = {
+            ctx: null,
+            isMuted: true, // Começa mutado por padrão (regra de navegadores)
+            bgmOscillators: [],
+            isPlayingMusic: false,
+            musicInterval: null,
+            masterGain: null,
+
+            init: function() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                    this.masterGain = this.ctx.createGain();
+                    this.masterGain.connect(this.ctx.destination);
+                    this.setVolume(this.isMuted ? 0 : 0.3);
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            },
+
+            toggle: function() {
+                this.init();
+                this.isMuted = !this.isMuted;
+                this.setVolume(this.isMuted ? 0 : 0.3);
+                this.updateUI();
+                
+                if (!this.isMuted && isPlaying) {
+                    this.startMusic();
+                } else {
+                    this.stopMusic();
+                }
+            },
+
+            setVolume: function(val) {
+                if(this.masterGain) this.masterGain.gain.setValueAtTime(val, this.ctx.currentTime);
+            },
+
+            updateUI: function() {
+                const text = document.getElementById('audioText');
+                const wave = document.getElementById('audioWave');
+                const btn = document.getElementById('btnAudio');
+                
+                if (this.isMuted) {
+                    text.innerText = "AUDIO: OFF";
+                    text.classList.add('text-gray-500');
+                    text.classList.remove('text-cyan-400');
+                    // Ícone de X
+                    wave.setAttribute('d', "M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2");
+                } else {
+                    text.innerText = "AUDIO: ON";
+                    text.classList.remove('text-gray-500');
+                    text.classList.add('text-cyan-400');
+                    // Ícone de Ondas
+                    wave.setAttribute('d', "M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728");
+                }
+            },
+
+            // --- GERADOR DE MÚSICA (Sequenciador de Baixo) ---
+            startMusic: function() {
+                if (this.isPlayingMusic || this.isMuted) return;
+                this.isPlayingMusic = true;
+                
+                let noteIndex = 0;
+                // Sequência Cyberpunk: D, F, G, A (Notas graves)
+                const bassLine = [73.42, 73.42, 87.31, 87.31, 98.00, 98.00, 65.41, 65.41]; 
+                
+                this.musicInterval = setInterval(() => {
+                    if(this.isMuted) return;
+                    const t = this.ctx.currentTime;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    const filter = this.ctx.createBiquadFilter();
+
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(bassLine[noteIndex % bassLine.length], t);
+                    
+                    // Filtro Lowpass para som abafado e "dark"
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(400, t);
+                    filter.frequency.exponentialRampToValueAtTime(100, t + 0.2);
+
+                    // Envelope
+                    gain.gain.setValueAtTime(0.3, t);
+                    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
+
+                    osc.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(this.masterGain);
+
+                    osc.start(t);
+                    osc.stop(t + 0.25);
+                    noteIndex++;
+                }, 250); // 120 BPM aprox
+            },
+
+            stopMusic: function() {
+                this.isPlayingMusic = false;
+                clearInterval(this.musicInterval);
+            },
+
+            // --- GERADOR DE EFEITOS SONOROS (SFX) ---
+            play: function(type) {
+                if (this.isMuted || !this.ctx) return;
+                const t = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                if (type === 'shoot') {
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(800, t);
+                    osc.frequency.exponentialRampToValueAtTime(100, t + 0.1);
+                    gain.gain.setValueAtTime(0.1, t);
+                    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+                    osc.connect(gain);
+                    gain.connect(this.masterGain);
+                    osc.start(t);
+                    osc.stop(t + 0.1);
+                } 
+                
+                else if (type === 'explosion') {
+                    // Ruído branco para explosão
+                    const bufferSize = this.ctx.sampleRate * 0.5; // 0.5 segundos
+                    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                    const data = buffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) {
+                        data[i] = Math.random() * 2 - 1;
+                    }
+                    const noise = this.ctx.createBufferSource();
+                    noise.buffer = buffer;
+                    
+                    // Filtro para dar "peso"
+                    const filter = this.ctx.createBiquadFilter();
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(1000, t);
+                    filter.frequency.exponentialRampToValueAtTime(50, t + 0.4);
+
+                    gain.gain.setValueAtTime(0.5, t);
+                    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.4);
+
+                    noise.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(this.masterGain);
+                    noise.start(t);
+                }
+
+                else if (type === 'coin') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(1200, t);
+                    osc.frequency.setValueAtTime(1800, t + 0.1);
+                    gain.gain.setValueAtTime(0.1, t);
+                    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
+                    osc.connect(gain);
+                    gain.connect(this.masterGain);
+                    osc.start(t);
+                    osc.stop(t + 0.2);
+                }
+
+                else if (type === 'buy') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(440, t);
+                    osc.frequency.linearRampToValueAtTime(880, t + 0.1);
+                    gain.gain.setValueAtTime(0.1, t);
+                    gain.gain.linearRampToValueAtTime(0, t + 0.3);
+                    osc.connect(gain);
+                    gain.connect(this.masterGain);
+                    osc.start(t);
+                    osc.stop(t + 0.3);
+                }
+                
+                else if (type === 'hit') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(100, t);
+                    osc.frequency.exponentialRampToValueAtTime(10, t + 0.1);
+                    gain.gain.setValueAtTime(0.2, t);
+                    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+                    osc.connect(gain);
+                    gain.connect(this.masterGain);
+                    osc.start(t);
+                    osc.stop(t + 0.1);
+                }
+                
+                else if (type === 'dash') {
+                    // Ruído rosa simulado (filtro)
+                    const bufferSize = this.ctx.sampleRate * 0.2;
+                    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                    const data = buffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+                    
+                    const noise = this.ctx.createBufferSource();
+                    noise.buffer = buffer;
+                    
+                    const filter = this.ctx.createBiquadFilter();
+                    filter.type = 'bandpass';
+                    filter.frequency.setValueAtTime(400, t);
+                    filter.frequency.linearRampToValueAtTime(2000, t + 0.2); // Som de "Swish"
+
+                    gain.gain.setValueAtTime(0.2, t);
+                    gain.gain.linearRampToValueAtTime(0, t + 0.2);
+
+                    noise.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(this.masterGain);
+                    noise.start(t);
+                }
+            }
+        };
+
         // --- Lógica do Hangar (Loja Permanente) ---
         const permShop = {
             costs: {
@@ -805,6 +1023,7 @@
                 if(this.dashCooldown > 0) this.dashCooldown--;
                 
                 if(this.canDash && keys.shift && this.dashCooldown <= 0 && !this.isDashing) {
+                    audioManager.play('dash');
                     this.isDashing = true;
                     this.dashCooldown = this.dashMaxCooldown;
                     this.invulnerable = true;
@@ -840,6 +1059,7 @@
             }
 
             shoot() {
+                audioManager.play('shoot');
                 projectiles.push(new Projectile(this.x, this.y, this.angle, this.damage));
                 if(this.multishot > 0) {
                     const spread = 0.2;
@@ -1026,6 +1246,8 @@
         }
 
         function startGame() {
+            audioManager.init();
+            audioManager.startMusic();
             initGame();
             isPlaying = true;
             document.getElementById('mainMenu').style.display = 'none';
@@ -1265,6 +1487,7 @@ function playBuySound() {
                 c.update(); c.draw();
                 const dist = Math.hypot(player.x - c.x, player.y - c.y);
                 if(dist < player.radius + c.radius) {
+                    audioManager.play('coin');
                     player.coins += c.val;
                     coins.splice(i, 1);
                 }
@@ -1281,6 +1504,7 @@ function playBuySound() {
                         projectiles.splice(pi, 1);
                         createExplosion(e.x, e.y, '#ffff00', 3);
                         if(e.hp <= 0) {
+                            audioManager.play('explosion');
                             createExplosion(e.x, e.y, e.color, 15);
                             player.score += e.value * 10;
                             coins.push(new Coin(e.x, e.y, Math.floor(e.value * (1+Math.random()))));
@@ -1296,6 +1520,7 @@ function playBuySound() {
                 });
 
                 if(!player.invulnerable && Math.hypot(player.x - e.x, player.y - e.y) < player.radius + e.radius) {
+                    audioManager.play('hit');
                     player.hp -= 20;
                     enemies.splice(i, 1);
                     createExplosion(player.x, player.y, '#ff0000', 10);
@@ -1303,6 +1528,7 @@ function playBuySound() {
                     setTimeout(()=>document.body.classList.remove('shake'), 500);
                     
                     if(player.hp <= 0) {
+                        audioManager.stopMusic();
                         isPlaying = false;
                         const earnedDiamonds = Math.floor(player.score / 500); 
                         authManager.addDiamonds(earnedDiamonds);
